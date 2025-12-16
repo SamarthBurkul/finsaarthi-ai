@@ -9,6 +9,7 @@ interface ChatMessage {
 }
 
 const AIFinanceBot: React.FC = () => {
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -16,6 +17,7 @@ const AIFinanceBot: React.FC = () => {
       sender: "bot",
       timestamp: new Date(),
     },
+
   ]);
 
   const [inputMessage, setInputMessage] = useState("");
@@ -49,6 +51,7 @@ const AIFinanceBot: React.FC = () => {
     setIsTyping(true);
 
     try {
+
       const response = await fetch(
         "https://api.perplexity.ai/chat/completions",
         {
@@ -82,10 +85,13 @@ const AIFinanceBot: React.FC = () => {
         throw new Error(`API error ${response.status}`);
       }
 
+
+
       const data = await response.json();
       const botText =
         data.choices?.[0]?.message?.content ??
         "I'm here to help with your financial questions! Could you please rephrase that? 💡";
+
 
       const botMessage: ChatMessage = {
         id: Date.now() + 1,
@@ -96,6 +102,7 @@ const AIFinanceBot: React.FC = () => {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
+
       console.error("Perplexity fetch failed:", error);
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
@@ -117,6 +124,7 @@ const AIFinanceBot: React.FC = () => {
   };
 
   const quickQuestions = [
+
     "How should I divide my salary between needs, wants, and savings?",
     "Create a simple monthly budget for a college student in India.",
     "Is it better to repay loans first or start investing?",
