@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import AdvancedCalculatorHub from "./components/AdvancedCalculatorHub";
@@ -13,9 +13,48 @@ import AIFinanceBot from "./components/AIFinanceBot";
 import StockMentorAI from "./components/StockMentorAI";
 import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
 import GovernmentBenefits from "./components/GovernmentBenefits";
+import SignIn from "./components/SignIn";
+import SignUp from "./components/SignUp";
+import { auth, googleProvider } from "./firebase";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
+import {
+  AuthPageName,
+  SignInValues,
+  SignUpValues,
+} from "./types/auth";
+
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authPage, setAuthPage] = useState<AuthPageName>("signup");
   const [activeSection, setActiveSection] = useState("home");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleEmailSignUp = async (values: SignUpValues) => {
+    await createUserWithEmailAndPassword(auth, values.email, values.password);
+    setIsAuthenticated(true);
+  };
+
+  const handleEmailSignIn = async (values: SignInValues) => {
+    await signInWithEmailAndPassword(auth, values.email, values.password);
+    setIsAuthenticated(true);
+  };
+
+  const handleGoogleAuth = async () => {
+    await signInWithPopup(auth, googleProvider);
+    setIsAuthenticated(true);
+  };
 
   const renderActiveSection = () => {
     switch (activeSection) {
@@ -45,6 +84,22 @@ function App() {
         return <Hero setActiveSection={setActiveSection} />;
     }
   };
+
+  if (!isAuthenticated) {
+    return authPage === "signup" ? (
+      <SignUp
+        onEmailSignUp={handleEmailSignUp}
+        onGoogleAuth={handleGoogleAuth}
+        onNavigateTo={setAuthPage}
+      />
+    ) : (
+      <SignIn
+        onEmailSignIn={handleEmailSignIn}
+        onGoogleAuth={handleGoogleAuth}
+        onNavigateTo={setAuthPage}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream-white">
