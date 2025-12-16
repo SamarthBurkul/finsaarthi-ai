@@ -2,20 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   Calculator,
   BookOpen,
-  Shield,
-  TrendingUp,
   Brain,
   Target,
-  Star,
-  CheckCircle,
-  Heart,
   MapPin,
   PiggyBank,
-  CreditCard,
   FileText,
   Briefcase,
   BarChart3,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 
 interface HeroProps {
@@ -36,7 +31,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Real-time financial advice and personalized recommendations.",
       action: () => setActiveSection("ai-chat"),
       gradient: "from-purple-600 via-violet-600 to-purple-800",
-      emoji: "🤖",
     },
     {
       icon: FileText,
@@ -44,8 +38,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "AI-powered scheme analyzer, eligibility checker, PDF reports.",
       action: () => setActiveSection("government-benefits"),
       gradient: "from-pink-600 via-rose-600 to-pink-800",
-      glow: "pink-500",
-      emoji: "🏛",
     },
     {
       icon: Calculator,
@@ -54,7 +46,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
         "EMI, SIP, FD, RD, Interest, Savings Growth & Business calculators.",
       action: () => setActiveSection("calculators"),
       gradient: "from-blue-600 via-indigo-600 to-blue-800",
-      emoji: "🧮",
     },
     {
       icon: BookOpen,
@@ -63,7 +54,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
         "Banking basics, quizzes, gamified learning & progress tracking.",
       action: () => setActiveSection("education"),
       gradient: "from-green-600 via-emerald-600 to-green-800",
-      emoji: "📚",
     },
     {
       icon: MapPin,
@@ -71,7 +61,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Locate nearby banks & ATMs with directions.",
       action: () => setActiveSection("bank-locator"),
       gradient: "from-teal-600 via-cyan-600 to-teal-800",
-      emoji: "📍",
     },
     {
       icon: PiggyBank,
@@ -79,7 +68,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Daily savings tracking with AI habit insights.",
       action: () => setActiveSection("smart-savings"),
       gradient: "from-yellow-600 via-amber-500 to-yellow-800",
-      emoji: "🐷",
     },
     {
       icon: TrendingUp,
@@ -87,7 +75,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Compare FD, Gold & Mutual Funds with AI advice.",
       action: () => setActiveSection("investment-comparator"),
       gradient: "from-indigo-600 via-purple-600 to-indigo-800",
-      emoji: "📈",
     },
     {
       icon: BarChart3,
@@ -95,7 +82,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Educational stock analysis & risk insights.",
       action: () => setActiveSection("stock-mentor"),
       gradient: "from-sky-600 via-blue-500 to-sky-800",
-      emoji: "📊",
     },
     {
       icon: Briefcase,
@@ -103,7 +89,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Salary projection & skill-based income growth.",
       action: () => setActiveSection("career-income"),
       gradient: "from-lime-600 via-green-500 to-lime-800",
-      emoji: "💼",
     },
     {
       icon: Target,
@@ -111,7 +96,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "Expense tracking, budgeting & financial health score.",
       action: () => setActiveSection("smart-budget"),
       gradient: "from-blue-800 via-indigo-700 to-blue-900",
-      emoji: "🎯",
     },
     {
       icon: Sparkles,
@@ -119,7 +103,6 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       description: "More AI-powered financial tools on the way.",
       action: () => {},
       gradient: "from-gray-600 via-gray-700 to-gray-800",
-      emoji: "🚀",
     },
   ];
 

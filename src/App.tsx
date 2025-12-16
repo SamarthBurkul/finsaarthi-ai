@@ -28,7 +28,6 @@ import {
   SignUpValues,
 } from "./types/auth";
 
-
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authPage, setAuthPage] = useState<AuthPageName>("signup");
@@ -56,6 +55,11 @@ function App() {
     setIsAuthenticated(true);
   };
 
+  const handleSetActiveSection = (section: string) => {
+    console.log("Switching to:", section);
+    setActiveSection(section);
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "ai-chat":
@@ -78,10 +82,10 @@ function App() {
         return <CareerIncomeIntelligence />;
       case "smart-budget":
         return <SmartBudgetAI />;
-      case "government-benefits":          // ✅ gov route
+      case "government-benefits":
         return <GovernmentBenefits />;
       default:
-        return <Hero setActiveSection={setActiveSection} />;
+        return <Hero setActiveSection={handleSetActiveSection} />;
     }
   };
 
@@ -105,7 +109,7 @@ function App() {
     <div className="min-h-screen bg-cream-white">
       <Header
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
+        setActiveSection={handleSetActiveSection}
       />
 
       <main className="fade-in">{renderActiveSection()}</main>
@@ -131,7 +135,7 @@ function App() {
             <div>
               <h4 className="font-semibold mb-4 text-blue-400">Features</h4>
               <ul className="space-y-2 text-blue-200">
-                <li>EMI & SIP Calculators</li>
+                <li>EMI &amp; SIP Calculators</li>
                 <li>Smart Budgeting</li>
                 <li>AI Financial Advisor</li>
                 <li>Bank Locator</li>
@@ -143,8 +147,8 @@ function App() {
               <h4 className="font-semibold mb-4 text-teal-400">Learn</h4>
               <ul className="space-y-2 text-teal-200">
                 <li>Banking Basics</li>
-                <li>Savings & Budgeting</li>
-                <li>Loans & Credit</li>
+                <li>Savings &amp; Budgeting</li>
+                <li>Loans &amp; Credit</li>
                 <li>Insurance</li>
                 <li>Investing 101</li>
               </ul>
