@@ -110,38 +110,7 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       gradient: 'from-blue-800 via-indigo-700 to-blue-900',
       emoji: '🎯'
     },
-    {
-      icon: Shield,
-      title: 'CyberShield',
-      description: 'Fraud detection, scam alerts & safety guides.',
-      action: () => setActiveSection('cyber-shield'),
-      gradient: 'from-red-800 via-rose-700 to-red-900',
-      emoji: '🛡️'
-    },
-    {
-      icon: CreditCard,
-      title: 'Credit Doctor',
-      description: 'Credit score improvement & loan approval analysis.',
-      action: () => setActiveSection('credit-doctor'),
-      gradient: 'from-violet-600 via-purple-600 to-violet-800',
-      emoji: '💳'
-    },
-    {
-      icon: CheckCircle,
-      title: 'LoanGuard',
-      description: 'Loan trap detection & interest evaluation.',
-      action: () => setActiveSection('loan-guard'),
-      gradient: 'from-amber-700 via-orange-600 to-amber-800',
-      emoji: '🔒'
-    },
-    {
-      icon: Heart,
-      title: 'PolicySense AI',
-      description: 'Insurance comparison & hidden clause detection.',
-      action: () => setActiveSection('policy-sense'),
-      gradient: 'from-emerald-600 via-teal-600 to-emerald-800',
-      emoji: '❤️'
-    },
+    
     {
       icon: Sparkles,
       title: 'Coming Soon',

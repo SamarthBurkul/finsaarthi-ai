@@ -32,17 +32,16 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
     { id: 'government-benefits', label: 'Gov Benefits', icon: PiggyBank },
     { id: 'smart-savings', label: 'Smart Savings', icon: Target },
     { id: 'investment-comparator', label: 'Investment Comparator', icon: BarChart3 }
-  ];
+    
 
-  const bottomRowItems = [
+  ];
+const bottomRowItems = [
+    
     { id: 'stock-mentor', label: 'StockMentor AI', icon: TrendingUp },
     { id: 'career-income', label: 'Career Income AI', icon: Award },
     { id: 'smart-budget', label: 'SmartBudget AI', icon: DollarSign },
-    { id: 'cyber-shield', label: 'CyberShield', icon: AlertTriangle },
-    { id: 'credit-doctor', label: 'Credit Doctor', icon: ShieldCheck },
-    { id: 'loan-guard', label: 'LoanGuard', icon: FileSearch },
-    { id: 'policy-sense', label: 'PolicySense AI', icon: BookOpen }
   ];
+
 
   return (
     <header className="luxury-gradient text-soft-white shadow-2xl sticky top-0 z-50">
