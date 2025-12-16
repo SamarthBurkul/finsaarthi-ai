@@ -1,45 +1,46 @@
-import React, { useState } from 'react';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import AdvancedCalculatorHub from './components/AdvancedCalculatorHub';
-import FinancialEducation from './components/FinancialEducation';
-import BankingBasics from './components/BankingBasics';
-import BankLocator from './components/BankLocator';
-import Leaderboard from './components/Leaderboard';
-import SmartSavings from './components/SmartSavings';
-import SmartBudgetAI from './components/SmartBudgetAI';
-import CareerIncomeIntelligence from './components/CareerIncomeIntelligence';
-import AIFinanceBot from './components/AIFinanceBot';
-import StockMentorAI from './components/StockMentorAI';
-import SmartInvestmentComparator from './components/SmartInvestmentComparator';
+import React, { useState } from "react";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import AdvancedCalculatorHub from "./components/AdvancedCalculatorHub";
+import FinancialEducation from "./components/FinancialEducation";
+import BankingBasics from "./components/BankingBasics";
+import BankLocator from "./components/BankLocator";
+import Leaderboard from "./components/Leaderboard";
+import SmartSavings from "./components/SmartSavings";
+import SmartBudgetAI from "./components/SmartBudgetAI";
+import CareerIncomeIntelligence from "./components/CareerIncomeIntelligence";
+import AIFinanceBot from "./components/AIFinanceBot";
+import StockMentorAI from "./components/StockMentorAI";
+import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
+import GovernmentBenefits from "./components/GovernmentBenefits";
 
 function App() {
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState("home");
 
   const renderActiveSection = () => {
     switch (activeSection) {
-      case 'ai-chat':
+      case "ai-chat":
         return <AIFinanceBot />;
-      case 'investment-comparator':
+      case "investment-comparator":
         return <SmartInvestmentComparator />;
-      case 'stock-mentor':
+      case "stock-mentor":
         return <StockMentorAI />;
-      case 'calculators':
+      case "calculators":
         return <AdvancedCalculatorHub />;
-      case 'education':
+      case "education":
         return <FinancialEducation />;
-      case 'banking-basics':
+      case "banking-basics":
         return <BankingBasics />;
-      case 'bank-locator':
+      case "bank-locator":
         return <BankLocator />;
-      
-      case 'smart-savings':
+      case "smart-savings":
         return <SmartSavings />;
-      case 'career-income':
+      case "career-income":
         return <CareerIncomeIntelligence />;
-      case 'smart-budget':
+      case "smart-budget":
         return <SmartBudgetAI />;
-      
+      case "government-benefits":          // ✅ gov route
+        return <GovernmentBenefits />;
       default:
         return <Hero setActiveSection={setActiveSection} />;
     }
@@ -47,13 +48,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-cream-white">
-      <Header activeSection={activeSection} setActiveSection={setActiveSection} />
+      <Header
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+      />
 
-      <main className="fade-in">
-        {renderActiveSection()}
-      </main>
+      <main className="fade-in">{renderActiveSection()}</main>
 
-      {/* Footer */}
       <footer className="luxury-gradient text-soft-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">

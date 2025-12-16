@@ -111,6 +111,8 @@ Return ONLY JSON in this exact shape:
   };
 
   const analyzeBenefits = async () => {
+      console.log("analyzeBenefits clicked", userProfile);
+
     setIsAnalyzing(true);
     setError("");
     setBenefits(null);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Calculator,
   BookOpen,
@@ -14,8 +14,8 @@ import {
   Award,
   BarChart3,
   DollarSign,
-  Target
-} from 'lucide-react';
+  Target,
+} from "lucide-react";
 
 interface HeaderProps {
   activeSection: string;
@@ -24,24 +24,29 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
   const topRowItems = [
-    { id: 'home', label: 'Home', icon: Shield },
-    { id: 'ai-chat', label: 'AI Chat', icon: Brain },
-    { id: 'calculators', label: 'Calculators', icon: Calculator },
-    { id: 'education', label: 'Learn', icon: BookOpen },
-    { id: 'bank-locator', label: 'Find Banks', icon: Building2 },
-    { id: 'government-benefits', label: 'Gov Benefits', icon: PiggyBank },
-    { id: 'smart-savings', label: 'Smart Savings', icon: Target },
-    { id: 'investment-comparator', label: 'Investment Comparator', icon: BarChart3 }
-    
-
-  ];
-const bottomRowItems = [
-    
-    { id: 'stock-mentor', label: 'StockMentor AI', icon: TrendingUp },
-    { id: 'career-income', label: 'Career Income AI', icon: Award },
-    { id: 'smart-budget', label: 'SmartBudget AI', icon: DollarSign },
+    { id: "home", label: "Home", icon: Shield },
+    { id: "ai-chat", label: "AI Chat", icon: Brain },
+    { id: "calculators", label: "Calculators", icon: Calculator },
+    { id: "education", label: "Learn", icon: BookOpen },
+    { id: "bank-locator", label: "Find Banks", icon: Building2 },
+    { id: "government-benefits", label: "Gov Benefits", icon: PiggyBank },
+    { id: "smart-savings", label: "Smart Savings", icon: Target },
+    {
+      id: "investment-comparator",
+      label: "Investment Comparator",
+      icon: BarChart3,
+    },
   ];
 
+  const bottomRowItems = [
+    { id: "stock-mentor", label: "StockMentor AI", icon: TrendingUp },
+    { id: "career-income", label: "Career Income AI", icon: Award },
+    { id: "smart-budget", label: "SmartBudget AI", icon: DollarSign },
+    { id: "cyber-shield", label: "CyberShield", icon: AlertTriangle },
+    { id: "credit-doctor", label: "Credit Doctor", icon: ShieldCheck },
+    { id: "loan-guard", label: "LoanGuard", icon: FileSearch },
+    { id: "policy-sense", label: "PolicySense AI", icon: BookOpen },
+  ];
 
   return (
     <header className="luxury-gradient text-soft-white shadow-2xl sticky top-0 z-50">
@@ -68,12 +73,14 @@ const bottomRowItems = [
                   onClick={() => setActiveSection(item.id)}
                   className={`flex items-center space-x-1 px-2 xl:px-3 py-2 rounded-lg transition-all duration-300 text-sm border border-gold ${
                     activeSection === item.id
-                      ? 'bg-gold text-white'
-                      : 'hover:bg-white/10 text-soft-white'
+                      ? "bg-gold text-white"
+                      : "hover:bg-white/10 text-soft-white"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="font-medium whitespace-nowrap">{item.label}</span>
+                  <span className="font-medium whitespace-nowrap">
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -95,12 +102,14 @@ const bottomRowItems = [
                   onClick={() => setActiveSection(item.id)}
                   className={`flex items-center space-x-1 px-2 xl:px-3 py-2 rounded-lg transition-all duration-300 text-sm border border-gold ${
                     activeSection === item.id
-                      ? 'bg-gold text-white'
-                      : 'hover:bg-white/10 text-soft-white'
+                      ? "bg-gold text-white"
+                      : "hover:bg-white/10 text-soft-white"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="font-medium whitespace-nowrap">{item.label}</span>
+                  <span className="font-medium whitespace-nowrap">
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -118,15 +127,15 @@ const bottomRowItems = [
                   onClick={() => setActiveSection(item.id)}
                   className={`flex flex-col items-center px-1 py-2 rounded-lg transition-all duration-300 text-xs border border-gold ${
                     activeSection === item.id
-                      ? 'bg-gold text-white'
-                      : 'hover:bg-white/10 text-soft-white'
+                      ? "bg-gold text-white"
+                      : "hover:bg-white/10 text-soft-white"
                   }`}
                   title={item.label}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="font-medium mt-1 text-center leading-tight">
-                    {item.label.includes(' ')
-                      ? item.label.split(' ')[0]
+                    {item.label.includes(" ")
+                      ? item.label.split(" ")[0]
                       : item.label}
                   </span>
                 </button>
