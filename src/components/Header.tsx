@@ -42,15 +42,11 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
     { id: "stock-mentor", label: "StockMentor AI", icon: TrendingUp },
     { id: "career-income", label: "Career Income AI", icon: Award },
     { id: "smart-budget", label: "SmartBudget AI", icon: DollarSign },
-    { id: "cyber-shield", label: "CyberShield", icon: AlertTriangle },
-    { id: "credit-doctor", label: "Credit Doctor", icon: ShieldCheck },
-    { id: "loan-guard", label: "LoanGuard", icon: FileSearch },
-    { id: "policy-sense", label: "PolicySense AI", icon: BookOpen },
   ];
 
   return (
     <header className="luxury-gradient text-soft-white shadow-2xl sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-5 py-6">
         {/* Top Row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
