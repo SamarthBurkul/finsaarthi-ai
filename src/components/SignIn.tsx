@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { AuthPageProps, SignInValues } from "../types/auth";
 // ✅ file is in the same folder (components)
 import { fintechColors as c } from "./fintechTheme";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+  
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 

@@ -6,6 +6,7 @@ import { savingsService } from '../api/savingsService';
 const SmartSavings: React.FC = () => {
   const [dailyGoal, setDailyGoal] = useState(20);
   const [customAmount, setCustomAmount] = useState('');
+  const [activePreset, setActivePreset] = useState<number | null>(20); // Track active preset button
   const [currentSavings, setCurrentSavings] = useState(0);
   const [streak, setStreak] = useState(0);
   const [daysSaved, setDaysSaved] = useState(0);
@@ -45,6 +46,13 @@ const SmartSavings: React.FC = () => {
       setLoading(true);
       const state = await savingsService.getState();
       setDailyGoal(state.dailyGoal);
+      // Set active preset if dailyGoal matches a preset
+      if ([10, 20, 50].includes(state.dailyGoal)) {
+        setActivePreset(state.dailyGoal);
+      } else {
+        setActivePreset(null);
+        setCustomAmount(state.dailyGoal.toString());
+      }
       setCurrentSavings(state.currentSavings);
       setStreak(state.streak);
       setDaysSaved(state.daysSaved);
@@ -112,16 +120,43 @@ const SmartSavings: React.FC = () => {
     }
   };
 
-  // Update daily goal
-  const updateDailyGoal = async (newGoal: number) => {
+  // Handle preset button click with deselection logic
+  const handlePresetClick = async (amount: number) => {
     try {
       setError('');
-      await savingsService.updateState({ dailyGoal: newGoal });
-      setDailyGoal(newGoal);
-      setCustomAmount(''); // Clear custom input when preset is selected
+      
+      // If clicking the active button, deselect it
+      if (activePreset === amount) {
+        setActivePreset(null);
+        setDailyGoal(0);
+        setCustomAmount('');
+        return;
+      }
+      
+      // Otherwise, select this preset
+      await savingsService.updateState({ dailyGoal: amount });
+      setDailyGoal(amount);
+      setActivePreset(amount);
+      setCustomAmount(''); // Clear custom input
     } catch (err: any) {
       console.error('Error updating goal:', err);
       setError(err.message || 'Failed to update goal');
+    }
+  };
+
+  // Handle custom amount input
+  const handleCustomAmount = async (value: string) => {
+    const amount = parseInt(value);
+    if (value && amount > 0) {
+      try {
+        setError('');
+        await savingsService.updateState({ dailyGoal: amount });
+        setDailyGoal(amount);
+        setActivePreset(null); // Deselect all presets
+      } catch (err: any) {
+        console.error('Error updating goal:', err);
+        setError(err.message || 'Failed to update goal');
+      }
     }
   };
 
@@ -237,10 +272,10 @@ const SmartSavings: React.FC = () => {
                   {[10, 20, 50].map(amount => (
                     <button
                       key={amount}
-                      onClick={() => updateDailyGoal(amount)}
+                      onClick={() => handlePresetClick(amount)}
                       className={`p-3 rounded-lg font-semibold transition-all ${
-                        dailyGoal === amount
-                          ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white'
+                        activePreset === amount
+                          ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white shadow-lg'
                           : 'border border-slate-gray/30 text-white hover:bg-emerald-500/10'
                       }`}
                     >
@@ -254,13 +289,17 @@ const SmartSavings: React.FC = () => {
                     type="number"
                     placeholder="Custom amount"
                     value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
-                    onBlur={(e) => {
-                      if (e.target.value && parseInt(e.target.value) > 0) {
-                        updateDailyGoal(parseInt(e.target.value));
+                    onChange={(e) => {
+                      setCustomAmount(e.target.value);
+                      if (e.target.value) {
+                        setActivePreset(null); // Deselect presets when typing
                       }
                     }}
-                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                    onBlur={(e) => handleCustomAmount(e.target.value)}
+                    disabled={activePreset !== null}
+                    className={`w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter transition-opacity ${
+                      activePreset !== null ? 'opacity-40 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
 
