@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { PiggyBank, Target, TrendingUp, Award, Download, Calendar, Coins, Zap } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { savingsService } from '../api/savingsService';
 
 const SmartSavings: React.FC = () => {
   const [dailyGoal, setDailyGoal] = useState(20);
   const [customAmount, setCustomAmount] = useState('');
   const [currentSavings, setCurrentSavings] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [daysSaved, setDaysSaved] = useState(0);
   const [selectedGoal, setSelectedGoal] = useState('');
   const [goalPrice, setGoalPrice] = useState('');
   const [todaySaved, setTodaySaved] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [piggyAnimation, setPiggyAnimation] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const goals = [
     { name: 'Mobile Phone', price: 15000 },
@@ -23,6 +27,40 @@ const SmartSavings: React.FC = () => {
     { name: 'College Fees', price: 200000 }
   ];
 
+  // Load savings state from backend
+  useEffect(() => {
+    loadSavingsState();
+  }, []);
+
+  const loadSavingsState = async () => {
+    try {
+      setLoading(true);
+      const state = await savingsService.getState();
+      setDailyGoal(state.dailyGoal);
+      setCurrentSavings(state.currentSavings);
+      setStreak(state.streak);
+      setDaysSaved(state.daysSaved);
+      setSelectedGoal(state.selectedGoal || '');
+      setGoalPrice(state.goalPrice ? state.goalPrice.toString() : '');
+      
+      // Check if saved today
+      const lastSaved = state.lastSavedDate ? new Date(state.lastSavedDate) : null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (lastSaved) {
+        const lastSavedDate = new Date(lastSaved);
+        lastSavedDate.setHours(0, 0, 0, 0);
+        setTodaySaved(lastSavedDate.getTime() === today.getTime());
+      }
+    } catch (err: any) {
+      console.error('Error loading savings:', err);
+      setError('Failed to load savings data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateProjections = (amount: number) => ({
     tenDays: amount * 10,
     oneMonth: amount * 30,
@@ -30,13 +68,47 @@ const SmartSavings: React.FC = () => {
     oneYear: amount * 365
   });
 
-  const markTodaySaved = () => {
-    if (!todaySaved) {
-      setCurrentSavings(prev => prev + dailyGoal);
-      setStreak(prev => prev + 1);
+  const markTodaySaved = async () => {
+    if (todaySaved) {
+      setError('You already saved today!');
+      return;
+    }
+
+    try {
+      setError('');
+      const result = await savingsService.saveToday();
+      setCurrentSavings(result.currentSavings);
+      setStreak(result.streak);
+      setDaysSaved(result.daysSaved);
       setTodaySaved(true);
       setPiggyAnimation(true);
       setTimeout(() => setPiggyAnimation(false), 1000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save today');
+    }
+  };
+
+  // Update daily goal
+  const updateDailyGoal = async (newGoal: number) => {
+    try {
+      await savingsService.updateState({ dailyGoal: newGoal });
+      setDailyGoal(newGoal);
+    } catch (err) {
+      console.error('Error updating goal:', err);
+    }
+  };
+
+  // Update selected goal
+  const updateSelectedGoal = async (goal: string, price: number) => {
+    try {
+      await savingsService.updateState({
+        selectedGoal: goal,
+        goalPrice: price
+      });
+      setSelectedGoal(goal);
+      setGoalPrice(price.toString());
+    } catch (err) {
+      console.error('Error updating selected goal:', err);
     }
   };
 
@@ -183,6 +255,14 @@ No formatting symbols. Only JSON.`;
   const goalProgress = selectedGoal && goalPrice ? (currentSavings / parseInt(goalPrice)) * 100 : 0;
   const daysToGoal = selectedGoal && goalPrice ? Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal) : 0;
 
+  if (loading) {
+    return (
+      <section className="py-16 bg-jet-black min-h-screen flex items-center justify-center">
+        <div className="text-white text-2xl">Loading your savings...</div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 bg-jet-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -218,7 +298,7 @@ No formatting symbols. Only JSON.`;
                   {[10, 20, 50].map(amount => (
                     <button
                       key={amount}
-                      onClick={() => setDailyGoal(amount)}
+                      onClick={() => updateDailyGoal(amount)}
                       className={`p-3 rounded-lg font-semibold transition-all ${
                         dailyGoal === amount
                           ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white'
@@ -237,7 +317,7 @@ No formatting symbols. Only JSON.`;
                     value={customAmount}
                     onChange={(e) => {
                       setCustomAmount(e.target.value);
-                      if (e.target.value) setDailyGoal(parseInt(e.target.value));
+                      if (e.target.value) updateDailyGoal(parseInt(e.target.value));
                     }}
                     className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
                   />
@@ -299,13 +379,19 @@ No formatting symbols. Only JSON.`;
                   {todaySaved ? '✅ Today\'s Goal Complete!' : `💰 Save ₹${dailyGoal} Today`}
                 </button>
 
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-2 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm">
                   <div className="text-center">
                     <div className="text-lg font-bold text-blue-400">{streak}</div>
                     <div className="text-white">Day Streak</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-orange-400">{Math.floor(currentSavings / dailyGoal)}</div>
+                    <div className="text-lg font-bold text-orange-400">{daysSaved}</div>
                     <div className="text-white">Days Saved</div>
                   </div>
                 </div>
@@ -323,9 +409,13 @@ No formatting symbols. Only JSON.`;
                 <select
                   value={selectedGoal}
                   onChange={(e) => {
-                    setSelectedGoal(e.target.value);
-                    const goal = goals.find(g => g.name === e.target.value);
-                    if (goal) setGoalPrice(goal.price.toString());
+                    const goalName = e.target.value;
+                    const goal = goals.find(g => g.name === goalName);
+                    if (goal) {
+                      updateSelectedGoal(goalName, goal.price);
+                    } else {
+                      setSelectedGoal(goalName);
+                    }
                   }}
                   className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-inter"
                 >
@@ -342,6 +432,11 @@ No formatting symbols. Only JSON.`;
                     placeholder="Goal price (₹)"
                     value={goalPrice}
                     onChange={(e) => setGoalPrice(e.target.value)}
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        updateSelectedGoal('custom', parseInt(e.target.value));
+                      }
+                    }}
                     className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
                   />
                 )}
