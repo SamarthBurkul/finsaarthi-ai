@@ -6,7 +6,7 @@ export const fintechColors = {
   accentSoft: "#5b21b6",
   textPrimary: "#f9fafb",
   textSecondary: "#9ca3af",
-  error: "#f97373",
+  error: "#f97373", 
   border: "#1f2933",
   inputBg: "#0b0714",
 };
