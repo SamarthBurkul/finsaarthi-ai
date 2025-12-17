@@ -15,7 +15,15 @@ connectDB();
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/savings', require('./routes/savings'));
 app.use('/api/investment', require('./routes/investment'));
+<<<<<<< HEAD
 app.use('/api/career', require('./routes/career'));
+=======
+app.use("/api/expenses", require("./routes/expenses"));
+// backend/index.js (add this line near other app.use(...) route mounts)
+app.use("/api/budget", require("./routes/budget"));
+
+
+>>>>>>> feature/budget-analysis
 
 // Health check
 app.get('/api/health', (req, res) => {
