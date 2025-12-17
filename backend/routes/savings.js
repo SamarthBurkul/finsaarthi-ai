@@ -28,4 +28,7 @@ router.delete('/goals/:id', savingsController.deleteGoal);
 // ==================== DASHBOARD SUMMARY ====================
 router.get('/dashboard', savingsController.getDashboardSummary);
 
+// ==================== AI ANALYSIS ROUTE ====================
+router.get('/ai-analysis', savingsController.getAIAnalysis);
+
 module.exports = router;

@@ -64,6 +64,7 @@ const SignIn: React.FC<AuthPageProps> = ({
       });
 
       const data = await res.json();
+      localStorage.setItem("token", data.token);
 
       if (!res.ok) {
         throw new Error(data.error || "Invalid credentials");

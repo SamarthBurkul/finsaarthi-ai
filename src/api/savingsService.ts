@@ -172,6 +172,19 @@ const getDashboardSummary = async () => {
   return handleResponse(response);
 };
 
+// ==================== AI ANALYSIS API ====================
+
+/**
+ * Get AI-powered savings analysis
+ */
+const getAIAnalysis = async () => {
+  const response = await fetch(`${API_BASE_URL}/savings/ai-analysis`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  return handleResponse(response);
+};
+
 // Export all services
 export const savingsService = {
   // State
@@ -194,7 +207,10 @@ export const savingsService = {
   deleteGoal,
   
   // Dashboard
-  getDashboardSummary
+  getDashboardSummary,
+  
+  // AI Analysis
+  getAIAnalysis
 };
 
 export default savingsService;

@@ -17,19 +17,27 @@ const SmartSavings: React.FC = () => {
   const [piggyAnimation, setPiggyAnimation] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [backendGoals, setBackendGoals] = useState<any[]>([]);
 
-  const goals = [
-    { name: 'Mobile Phone', price: 15000 },
-    { name: 'Laptop', price: 50000 },
-    { name: 'Bike', price: 80000 },
-    { name: 'Emergency Fund', price: 100000 },
-    { name: 'Travel', price: 25000 },
-    { name: 'College Fees', price: 200000 }
+  const predefinedGoals = [
+    { name: 'Mobile Phone', price: 15000, id: 'phone' },
+    { name: 'Laptop', price: 50000, id: 'laptop' },
+    { name: 'Bike', price: 80000, id: 'bike' },
+    { name: 'Emergency Fund', price: 100000, id: 'emergency' },
+    { name: 'Travel', price: 25000, id: 'travel' },
+    { name: 'College Fees', price: 200000, id: 'college' }
+  ];
+
+  // Combine predefined and backend goals
+  const allGoals = [
+    ...predefinedGoals,
+    ...backendGoals.map(g => ({ name: g.goalName, price: g.targetAmount, id: g._id }))
   ];
 
   // Load savings state from backend
   useEffect(() => {
     loadSavingsState();
+    loadBackendGoals();
   }, []);
 
   const loadSavingsState = async () => {
@@ -61,6 +69,16 @@ const SmartSavings: React.FC = () => {
     }
   };
 
+  const loadBackendGoals = async () => {
+    try {
+      const fetchedGoals = await savingsService.getAllGoals();
+      setBackendGoals(fetchedGoals);
+    } catch (err: any) {
+      console.error('Error loading backend goals:', err);
+      // Don't show error to user, just use default goals
+    }
+  };
+
   const calculateProjections = (amount: number) => ({
     tenDays: amount * 10,
     oneMonth: amount * 30,
@@ -70,31 +88,40 @@ const SmartSavings: React.FC = () => {
 
   const markTodaySaved = async () => {
     if (todaySaved) {
-      setError('You already saved today!');
+      setError('You already saved today! Come back tomorrow 🎉');
       return;
     }
 
     try {
       setError('');
+      setPiggyAnimation(true); // Start animation immediately
       const result = await savingsService.saveToday();
+      
+      // Update all states
       setCurrentSavings(result.currentSavings);
       setStreak(result.streak);
       setDaysSaved(result.daysSaved);
       setTodaySaved(true);
-      setPiggyAnimation(true);
+      
+      // Clear error and stop animation
       setTimeout(() => setPiggyAnimation(false), 1000);
     } catch (err: any) {
+      setPiggyAnimation(false);
       setError(err.message || 'Failed to save today');
+      console.error('Save today error:', err);
     }
   };
 
   // Update daily goal
   const updateDailyGoal = async (newGoal: number) => {
     try {
+      setError('');
       await savingsService.updateState({ dailyGoal: newGoal });
       setDailyGoal(newGoal);
-    } catch (err) {
+      setCustomAmount(''); // Clear custom input when preset is selected
+    } catch (err: any) {
       console.error('Error updating goal:', err);
+      setError(err.message || 'Failed to update goal');
     }
   };
 
@@ -114,141 +141,53 @@ const SmartSavings: React.FC = () => {
 
   const analyzeHabits = async () => {
     setIsAnalyzing(true);
+    setError('');
 
     try {
-      const savingsRate = currentSavings > 0 ? (currentSavings / (streak || 1)) : dailyGoal;
-      const monthlyProjection = savingsRate * 30;
-      const yearlyProjection = savingsRate * 365;
+      // Call backend AI analysis endpoint
+      const analysis = await savingsService.getAIAnalysis();
+      setAiAnalysis(analysis);
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      setError('Failed to generate analysis. Showing basic insights.');
       
-      const prompt = `Analyze my savings and provide practical financial advice:
-
-MY SAVINGS DATA:
-- Daily Saving Goal: ₹${dailyGoal}
-- Total Amount Saved: ₹${currentSavings}
-- Saving Streak: ${streak} days
-- Average Daily Savings: ₹${savingsRate.toFixed(0)}
-- Monthly Projection: ₹${monthlyProjection.toFixed(0)}
-- Yearly Projection: ₹${yearlyProjection.toFixed(0)}
-- Current Goal: ${selectedGoal || 'No goal set'}
-- Goal Target: ₹${goalPrice || '0'}
-- Today's Status: ${todaySaved ? 'Saved' : 'Not saved yet'}
-
-Provide practical savings analysis in JSON format:
-{
-  "savingsAssessment": {
-    "currentPerformance": "Excellent/Good/Average/Poor",
-    "savingsRate": "Daily average analysis",
-    "progressEvaluation": "How well user is doing"
-  },
-  "practicalTips": [
-    "Specific tip 1 to save more money",
-    "Specific tip 2 to reduce expenses",
-    "Specific tip 3 to increase savings"
-  ],
-  "smartAdvice": {
-    "increaseGoal": "Should I increase my daily goal and by how much",
-    "expenseReduction": "Where can I cut expenses to save more",
-    "savingStrategy": "Best strategy for my current situation"
-  },
-  "goalGuidance": {
-    "timeToGoal": "Realistic time to achieve current goal",
-    "goalFeasibility": "Is my goal realistic with current savings",
-    "alternativeGoals": "Better goal suggestions if needed"
-  },
-  "moneyManagement": {
-    "emergencyFund": "Emergency fund advice based on my savings",
-    "investmentReadiness": "When should I start investing",
-    "budgetOptimization": "How to optimize my budget"
-  },
-  "nextSteps": [
-    "Action 1 to improve savings",
-    "Action 2 to reach goals faster",
-    "Action 3 for better money management"
-  ]
-}
-
-No formatting symbols. Only JSON.`;
-
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1000,
-          temperature: 0.7
-        })
-      });
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content || '{}';
-      
-      try {
-        const result = JSON.parse(content);
-        setAiAnalysis(result);
-      } catch {
-        setAiAnalysis({
-          savingsAssessment: {
-            currentPerformance: currentSavings > 1000 ? "Good" : "Getting Started",
-            savingsRate: `₹${savingsRate.toFixed(0)} per day average`,
-            progressEvaluation: "Building good saving habits"
-          },
-          practicalTips: [
-            "Track daily expenses to find saving opportunities",
-            "Use the 50-30-20 rule: 50% needs, 30% wants, 20% savings",
-            "Automate savings to make it effortless"
-          ],
-          smartAdvice: {
-            increaseGoal: dailyGoal < 50 ? "Consider increasing to ₹" + (dailyGoal + 10) : "Current goal is good",
-            expenseReduction: "Review subscription services and dining out expenses",
-            savingStrategy: "Start with small amounts and gradually increase"
-          },
-          goalGuidance: {
-            timeToGoal: goalPrice ? `${Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal)} days` : "Set a goal first",
-            goalFeasibility: "Your goal is achievable with consistent saving",
-            alternativeGoals: "Consider emergency fund as first priority"
-          },
-          moneyManagement: {
-            emergencyFund: "Aim for 3-6 months of expenses as emergency fund",
-            investmentReadiness: "Start investing after building emergency fund",
-            budgetOptimization: "Use 50-30-20 budgeting method"
-          },
-          nextSteps: [
-            "Increase daily goal by ₹5-10 when comfortable",
-            "Set up automatic transfers to savings account",
-            "Review and reduce unnecessary expenses"
-          ]
-        });
-      }
-    } catch (error) {
+      // Fallback to basic analysis if backend fails
+      const savingsRate = currentSavings > 0 && daysSaved > 0 ? currentSavings / daysSaved : dailyGoal;
       setAiAnalysis({
         savingsAssessment: {
-          currentPerformance: "Good",
-          savingsRate: `₹${dailyGoal} daily target`,
-          progressEvaluation: "On track with savings goals"
+          currentPerformance: currentSavings > 1000 ? "Good" : "Getting Started",
+          savingsRate: `₹${Math.round(savingsRate)} per day average`,
+          progressEvaluation: "Building good saving habits"
         },
         practicalTips: [
-          "Review monthly expenses to find savings",
-          "Use cashback apps for purchases",
-          "Cook at home more often"
+          "Track daily expenses to find saving opportunities",
+          "Use the 50-30-20 rule: 50% needs, 30% wants, 20% savings",
+          "Automate savings to make it effortless"
         ],
         smartAdvice: {
-          increaseGoal: "Gradually increase savings as income grows",
-          expenseReduction: "Track spending for better control",
-          savingStrategy: "Consistency beats perfection"
+          increaseGoal: dailyGoal < 50 ? `Consider increasing to ₹${dailyGoal + 10}` : "Current goal is good",
+          expenseReduction: "Review subscription services and dining out expenses",
+          savingStrategy: "Start with small amounts and gradually increase"
+        },
+        goalGuidance: {
+          timeToGoal: goalPrice ? `${Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal)} days` : "Set a goal first",
+          goalFeasibility: "Your goal is achievable with consistent saving",
+          alternativeGoals: "Consider emergency fund as first priority"
+        },
+        moneyManagement: {
+          emergencyFund: "Aim for 3-6 months of expenses as emergency fund",
+          investmentReadiness: "Start investing after building emergency fund",
+          budgetOptimization: "Use 50-30-20 budgeting method"
         },
         nextSteps: [
-          "Continue current saving habit",
-          "Set specific financial goals",
-          "Consider investment options"
+          "Increase daily goal by ₹5-10 when comfortable",
+          "Set up automatic transfers to savings account",
+          "Review and reduce unnecessary expenses"
         ]
       });
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    setIsAnalyzing(false);
   };
 
   const projections = calculateProjections(dailyGoal);
@@ -315,9 +254,11 @@ No formatting symbols. Only JSON.`;
                     type="number"
                     placeholder="Custom amount"
                     value={customAmount}
-                    onChange={(e) => {
-                      setCustomAmount(e.target.value);
-                      if (e.target.value) updateDailyGoal(parseInt(e.target.value));
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    onBlur={(e) => {
+                      if (e.target.value && parseInt(e.target.value) > 0) {
+                        updateDailyGoal(parseInt(e.target.value));
+                      }
                     }}
                     className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
                   />
@@ -410,7 +351,7 @@ No formatting symbols. Only JSON.`;
                   value={selectedGoal}
                   onChange={(e) => {
                     const goalName = e.target.value;
-                    const goal = goals.find(g => g.name === goalName);
+                    const goal = allGoals.find(g => g.name === goalName);
                     if (goal) {
                       updateSelectedGoal(goalName, goal.price);
                     } else {
@@ -420,8 +361,10 @@ No formatting symbols. Only JSON.`;
                   className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-inter"
                 >
                   <option value="">Select a goal</option>
-                  {goals.map(goal => (
-                    <option key={goal.name} value={goal.name}>{goal.name}</option>
+                  {allGoals.map((goal, index) => (
+                    <option key={goal.id || goal.name} value={goal.name}>
+                      {goal.name} - ₹{goal.price.toLocaleString()}
+                    </option>
                   ))}
                   <option value="custom">Custom Goal</option>
                 </select>

@@ -299,3 +299,80 @@ exports.getDashboardSummary = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// ==================== AI ANALYSIS CONTROLLER ====================
+
+// Get AI-powered savings analysis
+exports.getAIAnalysis = async (req, res) => {
+  try {
+    const savingsState = await SavingsState.findOne({ userId: req.userId });
+    
+    if (!savingsState) {
+      return res.status(404).json({ error: 'No savings data found' });
+    }
+
+    const { dailyGoal, currentSavings, streak, daysSaved, selectedGoal, goalPrice } = savingsState;
+    
+    // Calculate metrics
+    const savingsRate = currentSavings > 0 && daysSaved > 0 ? currentSavings / daysSaved : dailyGoal;
+    const monthlyProjection = savingsRate * 30;
+    const yearlyProjection = savingsRate * 365;
+    const consistencyRate = daysSaved > 0 ? (streak / daysSaved * 100) : 0;
+    
+    // Determine performance level
+    let performanceLevel = 'Getting Started';
+    if (currentSavings >= 10000 && streak >= 30) performanceLevel = 'Excellent';
+    else if (currentSavings >= 5000 && streak >= 15) performanceLevel = 'Good';
+    else if (currentSavings >= 1000 && streak >= 7) performanceLevel = 'Average';
+    
+    // Generate practical analysis
+    const analysis = {
+      savingsAssessment: {
+        currentPerformance: performanceLevel,
+        savingsRate: `₹${Math.round(savingsRate)} per day average`,
+        progressEvaluation: `You've saved ${daysSaved} days with a ${streak}-day streak. ${consistencyRate > 70 ? 'Excellent consistency!' : 'Keep building the habit!'}`
+      },
+      practicalTips: [
+        dailyGoal < 50 ? 'Start small and gradually increase your daily goal as you build the habit' : 'Your daily goal is good. Focus on consistency',
+        'Review your expenses weekly to find additional savings opportunities',
+        streak < 7 ? 'Try to maintain a 7-day streak first, then aim for 30 days' : 'Great streak! Keep it going',
+        'Use the 24-hour rule: Wait 24 hours before making impulse purchases'
+      ],
+      smartAdvice: {
+        increaseGoal: dailyGoal < 100 ? `Consider increasing to ₹${dailyGoal + 20} once you maintain a 30-day streak` : 'Your goal is ambitious. Focus on consistency',
+        expenseReduction: 'Track dining out, subscriptions, and entertainment expenses - these are often the easiest to optimize',
+        savingStrategy: consistencyRate > 70 ? 'Your consistency is great! Consider automating transfers to a high-interest savings account' : 'Focus on building consistency. Set daily reminders'
+      },
+      goalGuidance: {
+        timeToGoal: goalPrice && goalPrice > currentSavings ? `${Math.ceil((goalPrice - currentSavings) / dailyGoal)} days at current rate` : selectedGoal ? 'Goal achieved! Set a new one' : 'Set a goal to stay motivated',
+        goalFeasibility: goalPrice ? (goalPrice / yearlyProjection < 2 ? 'Very achievable within 2 years' : 'Ambitious but possible with consistency') : 'Select a goal to track progress',
+        alternativeGoals: currentSavings < 50000 ? 'Consider building a ₹50,000 emergency fund first' : 'You have a good emergency base. Time to invest!'
+      },
+      moneyManagement: {
+        emergencyFund: currentSavings < 100000 ? `Build up to ₹1,00,000 for emergencies (currently at ${Math.round(currentSavings/100000*100)}%)` : 'Excellent emergency fund! Consider investing surplus',
+        investmentReadiness: currentSavings >= 50000 ? 'You\'re ready to explore mutual funds or SIPs' : 'Focus on building emergency fund first',
+        budgetOptimization: 'Follow 50-30-20 rule: 50% needs, 30% wants, 20% savings/investments'
+      },
+      nextSteps: [
+        consistencyRate < 70 ? 'Set daily reminders to maintain consistency' : 'Increase your daily goal by 10-20%',
+        'Open a separate high-interest savings account for your goals',
+        currentSavings >= 50000 ? 'Consult a financial advisor about investment options' : 'Focus on reaching ₹50,000 milestone'
+      ],
+      projections: {
+        monthly: Math.round(monthlyProjection),
+        yearly: Math.round(yearlyProjection),
+        threeYears: Math.round(yearlyProjection * 3)
+      },
+      statistics: {
+        totalSaved: currentSavings,
+        averagePerDay: Math.round(savingsRate),
+        streak: streak,
+        consistency: Math.round(consistencyRate)
+      }
+    };
+
+    res.json(analysis);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
