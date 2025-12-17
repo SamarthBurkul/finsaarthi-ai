@@ -132,26 +132,12 @@ const AIFinanceBot: React.FC = () => {
     "Best way to start investing with ₹5000 per month?",
   ];
 
-<<<<<<< HEAD
-  return (
-    <section className="py-16 relative overflow-hidden bg-[#0C2B4E]">
-  <div className="
-    absolute inset-0
-    bg-gradient-to-br from-black/40 to-slate-900/60
-    backdrop-blur-xl
-  "></div>
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-1/4 w-64 h-64 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-3xl" />
-      </div>
-=======
   return (
     <section className="py-16 bg-jet-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur-3xl" />
         <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-3xl" />
       </div>
->>>>>>> 2c869d359dcc3164fe4351cbc819f42190aacbb5
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
