@@ -14,6 +14,7 @@ import {
   Shield,
   Sparkles,
   ArrowRight,
+  BookMarked,
 } from "lucide-react";
 
 interface HeroProps {
@@ -93,11 +94,11 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       action: () => setActiveSection("government-benefits"),
     },
     {
-      icon: Shield,
-      title: "Cyber & Financial Security",
-      description: "Protect your finances with security insights and tips",
+      icon: BookMarked,
+      title: "Educate Yourself",
+      description: "Empowering you with the knowledge to make smarter financial decisions",
       gradient: "from-green-500 via-emerald-500 to-green-600",
-      action: () => {},
+      action: () => setActiveSection("education"),
     },
   ];
 
@@ -106,7 +107,7 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
       {/* Animated Background Elements with Parallax */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ transform: 'translateZ(0)' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s", transform: 'translateZ(0)' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "5s", transform: 'translateZ(0)' }} />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-900/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s", transform: 'translateZ(0)' }} />
       </div>
 
