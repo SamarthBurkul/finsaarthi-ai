@@ -67,52 +67,55 @@ const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: [true, "Full name is required"],
+      required: true,
       trim: true,
       minlength: 3
     },
 
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
-      lowercase: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email"
-      ]
+      lowercase: true
     },
 
+    // 🔐 Mongo password (for email/password login)
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: 6,
-      select: false
+      select: false,
+      required: function() {
+        return this.authProvider === 'mongo';
+      }
     },
 
-    confirmPassword: {
+    // 🔥 Firebase UID (only for Firebase users)
+    firebaseUid: {
       type: String,
-      required: [true, "Confirm password is required"],
-      select: false
+      default: null
     },
 
-    // 🔥 ALL CALCULATORS CONNECTED TO USER
+    // 🔁 Track auth type
+    authProvider: {
+      type: String,
+      enum: ["mongo", "firebase"],
+      default: "mongo"
+    },
+
     calculators: {
       type: calculatorSchema,
       default: () => ({})
     }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+
+userSchema.pre("save", async function () {
+  // Only hash password if it exists and is modified
+  if (!this.password || !this.isModified("password")) return;
 
   this.password = await bcrypt.hash(this.password, 12);
-  this.confirmPassword = undefined;
-  next();
 });
 
 /* =========================

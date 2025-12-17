@@ -16,43 +16,67 @@ import GovernmentBenefits from "./components/GovernmentBenefits";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import {
   AuthPageName,
   SignInValues,
   SignUpValues,
 } from "./types/auth";
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authPage, setAuthPage] = useState<AuthPageName>("signup");
   const [activeSection, setActiveSection] = useState("home");
 
+  // Check if user is already logged in (has valid token)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-    });
-    return () => unsubscribe();
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Optionally verify token with backend
+      setIsAuthenticated(true);
+    }
   }, []);
 
+  // MongoDB signup (no Firebase)
   const handleEmailSignUp = async (values: SignUpValues) => {
-    await createUserWithEmailAndPassword(auth, values.email, values.password);
-    setIsAuthenticated(true);
+    // SignUp component handles the API call
+    // This is just a placeholder callback
   };
 
+  // MongoDB signin (no Firebase)
   const handleEmailSignIn = async (values: SignInValues) => {
-    await signInWithEmailAndPassword(auth, values.email, values.password);
+    // SignIn component handles the API call and sets auth
     setIsAuthenticated(true);
   };
 
+  // Google authentication (Firebase + MongoDB sync)
   const handleGoogleAuth = async () => {
-    await signInWithPopup(auth, googleProvider);
-    setIsAuthenticated(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      // Sync with MongoDB backend
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: user.displayName || 'Google User',
+          email: user.email,
+          firebaseUid: user.uid
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Save JWT token
+      localStorage.setItem('authToken', data.token);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Google auth error:', error);
+      throw error;
+    }
   };
 
   const handleSetActiveSection = (section: string) => {

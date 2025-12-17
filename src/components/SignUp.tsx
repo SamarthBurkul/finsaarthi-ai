@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { AuthPageProps, SignUpValues } from "../types/auth";
 // ✅ file is in the same folder (components)
 import { fintechColors as c } from "./fintechTheme";
-
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 
 const SignUp: React.FC<AuthPageProps> = ({
@@ -57,23 +57,44 @@ const SignUp: React.FC<AuthPageProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    if (!onEmailSignUp) return;
+  e.preventDefault();
 
-    try {
-      setIsSubmitting(true);
-      await onEmailSignUp(values);
-    } catch (err: any) {
-      setError(err?.message || "Unable to create account. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+  const validationError = validate();
+  if (validationError) {
+    setError(validationError);
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    // 🔥 BACKEND CALL (MongoDB user)
+    const res = await fetch(`${API_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(values),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Signup failed");
     }
-  };
+
+    console.log("User created successfully:", data.user);
+    
+    // ✅ Redirect to SignIn page after successful signup
+    if (onNavigateTo) {
+      onNavigateTo("signin");
+    }
+  } catch (err: any) {
+    setError(err.message || "Unable to create account. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleGoogle = async () => {
     if (!onGoogleAuth) return;

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { AuthPageProps, SignInValues } from "../types/auth";
 // ✅ file is in the same folder (components)
 import { fintechColors as c } from "./fintechTheme";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 
 
@@ -46,11 +47,37 @@ const SignIn: React.FC<AuthPageProps> = ({
       setError(validationError);
       return;
     }
-    if (!onEmailSignIn) return;
 
     try {
       setIsSubmitting(true);
-      await onEmailSignIn(values);
+
+      // 🔥 BACKEND CALL (MongoDB authentication)
+      const res = await fetch(`${API_URL}/api/auth/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Invalid credentials");
+      }
+
+      // ✅ Save JWT token
+      localStorage.setItem("authToken", data.token);
+      
+      console.log("User signed in:", data.user);
+
+      // ✅ Call onEmailSignIn to set isAuthenticated in App.tsx
+      if (onEmailSignIn) {
+        await onEmailSignIn(values);
+      }
     } catch (err: any) {
       setError(err?.message || "Unable to sign in. Please try again.");
     } finally {
