@@ -14,10 +14,10 @@ const FinancialEducation: React.FC = () => {
   const [quizResult, setQuizResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [userProgress, setUserProgress] = useState({
-    completedLessons: [],
+    completedLessons: [] as number[],
     totalPoints: 0,
-    earnedBadges: [],
-    lessonScores: {}
+    earnedBadges: [] as (string | number)[],
+    lessonScores: {} as Record<number, number>
   });
 
   const getCurrentLevel = () => {
