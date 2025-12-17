@@ -6,6 +6,7 @@ import FinancialEducation from "./components/FinancialEducation";
 import BankingBasics from "./components/BankingBasics";
 import BankLocator from "./components/BankLocator";
 import Leaderboard from "./components/Leaderboard";
+import StockMentorReport from "./components/StockMentorReport";
 import SmartSavings from "./components/SmartSavings";
 import SmartBudgetAI from "./components/SmartBudgetAI";
 import CareerIncomeIntelligence from "./components/CareerIncomeIntelligence";
@@ -17,64 +18,50 @@ import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
 import { signInWithPopup } from "firebase/auth";
-import {
-  AuthPageName,
-  SignInValues,
-  SignUpValues,
-} from "./types/auth";
+import { AuthPageName, SignInValues, SignUpValues } from "./types/auth";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authPage, setAuthPage] = useState<AuthPageName>("signup");
   const [activeSection, setActiveSection] = useState("home");
 
-  // Check if user is already logged in (has valid token)
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (token) {
-      // Optionally verify token with backend
       setIsAuthenticated(true);
     }
   }, []);
 
-  // MongoDB signup (no Firebase)
   const handleEmailSignUp = async (values: SignUpValues) => {
-    // SignUp component handles the API call
-    // This is just a placeholder callback
+    // SignUp handles API call
   };
 
-  // MongoDB signin (no Firebase)
   const handleEmailSignIn = async (values: SignInValues) => {
-    // SignIn component handles the API call and sets auth
     setIsAuthenticated(true);
   };
 
-  // Google authentication (Firebase + MongoDB sync)
   const handleGoogleAuth = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      
-      // Sync with MongoDB backend
+
       const response = await fetch(`${API_URL}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: user.displayName || 'Google User',
+          fullName: user.displayName || "Google User",
           email: user.email,
-          firebaseUid: user.uid
-        })
+          firebaseUid: user.uid,
+        }),
       });
-      
+
       const data = await response.json();
-      
-      // Save JWT token
-      localStorage.setItem('authToken', data.token);
+      localStorage.setItem("authToken", data.token);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Google auth error:', error);
+      console.error("Google auth error:", error);
       throw error;
     }
   };
@@ -91,7 +78,12 @@ function App() {
       case "investment-comparator":
         return <SmartInvestmentComparator />;
       case "stock-mentor":
-        return <StockMentorAI />;
+        return (
+          <>
+            <StockMentorAI />
+            <StockMentorReport />
+          </>
+        );
       case "calculators":
         return <AdvancedCalculatorHub />;
       case "education":
@@ -128,7 +120,7 @@ function App() {
       />
     );
   }
-
+  
   return (
     <div className="min-h-screen bg-cream-white">
       <Header
