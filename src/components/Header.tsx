@@ -94,7 +94,11 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-400 bg-clip-text text-transparent">
                 FinSaarthi
               </h1>
+<<<<<<< HEAD
               <p className="text-xs text-gray-400">AI Finance Platform</p>
+=======
+              <p className="text-xs text-gray-400">Your Smart AI Finance Guide</p>
+>>>>>>> 2c869d359dcc3164fe4351cbc819f42190aacbb5
             </div>
           </div>
 
@@ -244,7 +248,11 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
             {/* Logout Button */}
             <button
               onClick={handleLogout}
+<<<<<<< HEAD
               className="flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 text-gray-300 hover:text-white hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50"
+=======
+              className="flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 text-gray-300 hover:text-white hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50"
+>>>>>>> 2c869d359dcc3164fe4351cbc819f42190aacbb5
             >
               <LogOut className="w-4 h-4" />
               <span className="font-medium">Logout</span>
@@ -283,7 +291,11 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               })}
               <button
                 onClick={handleLogout}
+<<<<<<< HEAD
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-300 hover:bg-red-500/20 border border-red-500/30"
+=======
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 text-red-400 hover:text-red-300 hover:bg-red-500/20 border border-red-500/30"
+>>>>>>> 2c869d359dcc3164fe4351cbc819f42190aacbb5
               >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>

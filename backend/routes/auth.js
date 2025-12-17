@@ -85,12 +85,51 @@ router.post('/signup', async (req, res) => {
 // Sign In
 router.post('/signin', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, firebaseUid, fullName } = req.body;
 
+    // 🔥 FIREBASE SIGNIN
+    if (firebaseUid) {
+      let user = await User.findOne({ firebaseUid });
+
+      // If user doesn't exist, create them
+      if (!user) {
+        user = new User({
+          fullName: fullName || email.split('@')[0],
+          email,
+          firebaseUid,
+          authProvider: 'firebase'
+        });
+        await user.save();
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { userId: user._id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.json({
+        message: 'Firebase login successful',
+        token,
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email
+        }
+      });
+    }
+
+    // 🔹 MONGO SIGNIN (existing logic)
     // Find user
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check if user is Firebase-only
+    if (user.authProvider === 'firebase') {
+      return res.status(400).json({ error: 'Please sign in with Google' });
     }
 
     // Verify password
@@ -116,7 +155,7 @@ router.post('/signin', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Signin error:', error); // ✅ Add logging
+    console.error('Signin error:', error);
     res.status(500).json({ error: error.message });
   }
 });
