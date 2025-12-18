@@ -29,37 +29,8 @@ FinSaarthi is a comprehensive financial management platform that combines AI tec
 - AI-powered business insights
 - 30 days of dummy data for testing
 
-### 4. **Credit Score Doctor**
-- Credit score analysis and improvement tips
-- Personalized credit health assessment
-- AI-powered recommendations
-- Credit building strategies
 
-### 5. **CyberShield - Fraud Protection**
-- AI fraud detector for suspicious messages/calls
-- Real-time scam analysis
-- Emergency action panel (Call 1930, Block UPI/Cards)
-- Common fraud types education
-- Post-fraud recovery guide
-- Scam psychology analysis
-
-### 6. **LoanGuard - Loan Safety Analyzer**
-- AI-powered loan risk assessment
-- Interest rate analysis
-- EMI affordability check
-- Processing fee evaluation
-- Hidden charges detection
-- PDF report generation
-
-### 7. **PolicySense AI - Insurance Analyzer**
-- Compare multiple insurance policies
-- Individual policy analysis
-- AI-powered recommendations
-- Hidden clause detection
-- Claim safety scoring
-- Support for Health, Life, and Vehicle insurance
-
-### 8. **My Government Benefits**
+### 4. **My Government Benefits**
 - Find eligible government schemes
 - Personalized benefit recommendations
 - Scheme analysis and verification
@@ -67,7 +38,7 @@ FinSaarthi is a comprehensive financial management platform that combines AI tec
 - Fraud protection alerts
 - PDF report generation
 
-### 9. **Smart Savings**
+### 5. **Smart Savings**
 - Daily savings goal tracker
 - Digital piggy bank
 - Wealth projections (10 days to 1 year)
@@ -75,21 +46,15 @@ FinSaarthi is a comprehensive financial management platform that combines AI tec
 - AI savings habit analysis
 - Streak tracking
 
-### 10. **Career Insights AI**
-- Career path recommendations
-- Skill gap analysis
-- Salary insights
-- Job market trends
-- Personalized career roadmap
 
-### 11. **Financial Education**
+### 6. **Financial Education**
 - Banking 101: Account types, cards, loans, safety tips
 - Investment basics
 - Tax planning
 - Retirement planning
 - Interactive learning modules
 
-### 12. **Advanced Calculator Hub**
+### 7. **Advanced Calculator Hub**
 - EMI Calculator
 - SIP Calculator
 - Retirement Calculator
@@ -98,7 +63,7 @@ FinSaarthi is a comprehensive financial management platform that combines AI tec
 - FD Calculator
 - Business Calculator
 
-### 13. **FinSaarthi AI Assistant**
+### 8. **FinSaarthi AI Assistant**
 - 24/7 AI chatbot for financial queries
 - Conversational financial advice
 - Quick question suggestions
@@ -136,7 +101,7 @@ FinSaarthi is a comprehensive financial management platform that combines AI tec
 ## 📁 Project Structure
 
 ```
-KANIMA/
+FIN-MENTOR-AI/
 ├── src/
 │   ├── components/
 │   │   ├── Header.tsx                    # Navigation bar
@@ -144,13 +109,8 @@ KANIMA/
 │   │   ├── SmartBudgetAI.tsx            # Budget analysis
 │   │   ├── SmartExpenseTracker.tsx      # Expense tracking
 │   │   ├── SmartBusinessCalculator.tsx  # Business calculator
-│   │   ├── CreditScoreDoctor.tsx        # Credit analysis
-│   │   ├── CyberShield.tsx              # Fraud protection
-│   │   ├── LoanGuard.tsx                # Loan analyzer
-│   │   ├── PolicySenseAI.tsx            # Insurance analyzer
 │   │   ├── GovernmentBenefits.tsx       # Government schemes
 │   │   ├── SmartSavings.tsx             # Savings tracker
-│   │   ├── CareerInsightsAI.tsx         # Career guidance
 │   │   ├── FinancialEducation.tsx       # Learning modules
 │   │   ├── AdvancedCalculatorHub.tsx    # Calculator tools
 │   │   └── AIFinanceBot.tsx             # AI chatbot
@@ -183,7 +143,7 @@ KANIMA/
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd KANIMA
+cd FIN-MENTOR-AI
 ```
 
 2. **Install dependencies**
@@ -235,23 +195,17 @@ npm run build
 
 ## 🎯 Navigation Structure
 
-### Top Row (7 items)
+### Top Row (4 items)
 - Home
 - SmartBudget AI (with Expense Tracker)
-- Credit Doctor
-- CyberShield
-- Career Insights
 - Learn (with Banking 101)
 - Calculators (with Business Calculator)
 
-### Bottom Row (8 items)
-- LoanGuard
-- PolicySense
+### Bottom Row (4 items)
+
 - My Benefits
 - Smart Savings
 - Invest Smart
-- Tax Planner
-- Retirement
 - AI Assistant
 
 ---
@@ -266,7 +220,6 @@ npm run build
 ✅ **Real-time Calculations** for financial tools  
 ✅ **Fraud Protection** with emergency actions  
 ✅ **Government Scheme Finder** with eligibility check  
-✅ **Career Guidance** with AI recommendations  
 ✅ **Financial Education** with comprehensive content  
 
 ---
