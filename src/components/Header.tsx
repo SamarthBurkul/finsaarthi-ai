@@ -247,6 +247,8 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               onClick={handleLogout}
               
               className="flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 text-gray-300 hover:text-white hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50"
+             
+              
             >
               <LogOut className="w-4 h-4" />
               <span className="font-medium">Logout</span>
@@ -286,6 +288,8 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 text-red-400 hover:text-red-300 hover:bg-red-500/20 border border-red-500/30"
+               
+                
               >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>

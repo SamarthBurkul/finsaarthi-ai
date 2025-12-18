@@ -48,7 +48,7 @@ const Leaderboard: React.FC = () => {
     <section className="py-16 bg-jet-black relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Finance Champions <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">Leaderboard</span>
           </h2>
           <p className="text-lg text-white max-w-2xl mx-auto">

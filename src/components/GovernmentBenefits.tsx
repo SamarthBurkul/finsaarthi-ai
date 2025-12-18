@@ -199,10 +199,10 @@ User profile:
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             My Government <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-violet-400 bg-clip-text text-transparent">Benefits</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             AI-powered digital government assistant that ensures no citizen ever misses a government benefit again
           </p>
         </div>
@@ -239,7 +239,7 @@ User profile:
             <div className="max-w-4xl mx-auto">
               {analysisMode === 'profile' ? (
                 <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-                  <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+                  <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                     <Building2 className="w-6 h-6 mr-2 text-emerald-400" />
                     Your Profile Details
                   </h3>
@@ -247,21 +247,21 @@ User profile:
                 <div className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Age</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Age</label>
                       <input
                         type="number"
                         value={userProfile.age}
                         onChange={(e) => setUserProfile({...userProfile, age: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                         placeholder="e.g., 25"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Occupation</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Occupation</label>
                       <select
                         value={userProfile.occupation}
                         onChange={(e) => setUserProfile({...userProfile, occupation: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                       >
                         <option value="">Select Occupation</option>
                         <option value="student">Student</option>
@@ -279,22 +279,22 @@ User profile:
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Annual Income (₹)</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Annual Income (₹)</label>
                       <input
                         type="number"
                         value={userProfile.income}
                         onChange={(e) => setUserProfile({...userProfile, income: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                         placeholder="e.g., 300000"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Location (State)</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Location (State)</label>
                       <input
                         type="text"
                         value={userProfile.location}
                         onChange={(e) => setUserProfile({...userProfile, location: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                         placeholder="e.g., Tamil Nadu"
                       />
                     </div>
@@ -302,11 +302,11 @@ User profile:
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Category</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Category</label>
                       <select
                         value={userProfile.category}
                         onChange={(e) => setUserProfile({...userProfile, category: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                       >
                         <option value="">Select Category</option>
                         <option value="general">General</option>
@@ -317,11 +317,11 @@ User profile:
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Gender</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Gender</label>
                       <select
                         value={userProfile.gender}
                         onChange={(e) => setUserProfile({...userProfile, gender: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                       >
                         <option value="">Select Gender</option>
                         <option value="male">Male</option>
@@ -333,11 +333,11 @@ User profile:
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Marital Status</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Marital Status</label>
                       <select
                         value={userProfile.maritalStatus}
                         onChange={(e) => setUserProfile({...userProfile, maritalStatus: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                       >
                         <option value="">Select Status</option>
                         <option value="single">Single</option>
@@ -347,11 +347,11 @@ User profile:
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Education Level</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Education Level</label>
                       <select
                         value={userProfile.education}
                         onChange={(e) => setUserProfile({...userProfile, education: e.target.value})}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                       >
                         <option value="">Select Education</option>
                         <option value="illiterate">Illiterate</option>
@@ -382,19 +382,19 @@ User profile:
                 </div>
               ) : (
                 <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-                  <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+                  <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                     <Search className="w-6 h-6 mr-2 text-emerald-400" />
                     Scheme Analysis
                   </h3>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-soft-white font-inter">Government Scheme Name</label>
+                      <label className="block text-sm font-medium mb-2 text-soft-white font-ubuntu">Government Scheme Name</label>
                       <input
                         type="text"
                         value={schemeName}
                         onChange={(e) => setSchemeName(e.target.value)}
-                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                        className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                         placeholder="e.g., Pradhan Mantri Jan Dhan Yojana, Ayushman Bharat"
                       />
                     </div>
@@ -420,7 +420,7 @@ User profile:
 
             {/* Results Section */}
             <div className="max-w-6xl mx-auto bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <Shield className="w-6 h-6 mr-2 text-emerald-400" />
                 {analysisMode === 'profile' ? 'Your Eligible Benefits' : 'Scheme Analysis Results'}
               </h3>
@@ -429,7 +429,7 @@ User profile:
                 !benefits ? (
                   <div className="text-center py-12">
                     <Building2 className="w-16 h-16 text-slate-gray mx-auto mb-4" />
-                    <p className="text-slate-gray font-inter">Enter your details to discover government benefits you're eligible for</p>
+                    <p className="text-slate-gray font-ubuntu">Enter your details to discover government benefits you're eligible for</p>
                   </div>
                 ) : (
                 <div className="space-y-6">

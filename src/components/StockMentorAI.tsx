@@ -402,13 +402,13 @@ const StockMentorAI: React.FC = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Stock
             <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
               Mentor AI
             </span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Educational Market Advisor - Learn stock analysis and investment
             principles safely
           </p>

@@ -191,10 +191,10 @@ const CalculatorHub: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart Banking <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">Calculator Hub</span>
           </h2>
-          <p className="text-lg text-slate-gray max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-slate-gray max-w-2xl mx-auto font-ubuntu">
             Calculate EMI, SIP returns, FD maturity, and more with AI-powered insights and recommendations.
           </p>
         </div>

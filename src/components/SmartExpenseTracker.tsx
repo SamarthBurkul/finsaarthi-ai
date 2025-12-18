@@ -397,10 +397,10 @@ const SmartExpenseTracker: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart Expense <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 bg-clip-text text-transparent">Tracker</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Track every payment, understand your spending, and save smarter with AI insights
           </p>
         </div>

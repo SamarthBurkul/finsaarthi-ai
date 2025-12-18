@@ -149,8 +149,8 @@ const AdvancedCalculatorHub: React.FC = () => {
   };
 
   const renderForm = () => {
-    const inputClass = "w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter transition-all duration-300";
-    const labelClass = "block text-soft-white font-medium mb-2 font-inter";
+    const inputClass = "w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu transition-all duration-300";
+    const labelClass = "block text-soft-white font-medium mb-2 font-ubuntu";
 
     switch (activeCalculator) {
       case 'emi':
@@ -268,26 +268,26 @@ const AdvancedCalculatorHub: React.FC = () => {
       <div className="grid lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-            <h3 className="text-xl font-semibold mb-4 flex items-center font-inter text-soft-white">
+            <h3 className="text-xl font-semibold mb-4 flex items-center font-ubuntu text-soft-white">
               <BarChart3 className="w-5 h-5 mr-2 text-emerald-400" />
               Calculation Results
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {result.monthlyPayment && (
                 <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                  <p className="text-sm text-slate-gray font-inter">Monthly EMI</p>
+                  <p className="text-sm text-slate-gray font-ubuntu">Monthly EMI</p>
                   <p className="text-2xl font-bold text-blue-400">₹{result.monthlyPayment.toLocaleString()}</p>
                 </div>
               )}
               {result.maturityAmount && (
                 <div className="text-center p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-lg border border-emerald-500/20">
-                  <p className="text-sm text-slate-gray font-inter">Maturity Amount</p>
+                  <p className="text-sm text-slate-gray font-ubuntu">Maturity Amount</p>
                   <p className="text-2xl font-bold text-emerald-400">₹{result.maturityAmount.toLocaleString()}</p>
                 </div>
               )}
               {result.totalInterest && (
                 <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
-                  <p className="text-sm text-slate-gray font-inter">Total Interest</p>
+                  <p className="text-sm text-slate-gray font-ubuntu">Total Interest</p>
                   <p className="text-2xl font-bold text-orange-400">₹{result.totalInterest.toLocaleString()}</p>
                 </div>
               )}
@@ -296,9 +296,9 @@ const AdvancedCalculatorHub: React.FC = () => {
             <div className="mt-6 p-4 rounded-lg border" style={{borderColor: risk.color, backgroundColor: `${risk.color}10`}}>
               <div className="flex items-center space-x-2 mb-2">
                 <AlertTriangle className="w-5 h-5" style={{color: risk.color}} />
-                <span className="font-semibold font-inter" style={{color: risk.color}}>Risk Level: {risk.level}</span>
+                <span className="font-semibold font-ubuntu" style={{color: risk.color}}>Risk Level: {risk.level}</span>
               </div>
-              <p className="text-sm text-soft-white font-inter">{risk.message}</p>
+              <p className="text-sm text-soft-white font-ubuntu">{risk.message}</p>
             </div>
           </div>
           
@@ -312,7 +312,7 @@ const AdvancedCalculatorHub: React.FC = () => {
                     <circle cx="50%" cy="50%" r="30" fill="none" stroke="#10B981" strokeWidth="4" 
                       strokeDasharray={`${(aiAnalysis.score / 100) * 188} 188`} 
                       strokeLinecap="round" transform="rotate(-90 50% 50%)" />
-                    <text x="50%" y="55%" textAnchor="middle" className="text-lg fill-soft-white font-inter font-bold">
+                    <text x="50%" y="55%" textAnchor="middle" className="text-lg fill-soft-white font-ubuntu font-bold">
                       {aiAnalysis.score}
                     </text>
                   </svg>
@@ -343,7 +343,7 @@ const AdvancedCalculatorHub: React.FC = () => {
                     <path d="M10,50 Q30,30 50,35 T90,15" stroke="#8B5CF6" strokeWidth="3" fill="none" />
                     <circle cx="90" cy="15" r="3" fill="#8B5CF6" />
                     <circle cx="50" cy="35" r="2" fill="#8B5CF6" opacity="0.7" />
-                    <text x="50%" y="90%" textAnchor="middle" className="text-xs fill-soft-white font-inter">Excellent</text>
+                    <text x="50%" y="90%" textAnchor="middle" className="text-xs fill-soft-white font-ubuntu">Excellent</text>
                   </svg>
                 </div>
               </div>
@@ -355,7 +355,7 @@ const AdvancedCalculatorHub: React.FC = () => {
           {aiAnalysis && (
             <div className="bg-charcoal-gray rounded-2xl p-6 border border-slate-gray/20">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent font-inter flex items-center">
+                <h4 className="text-lg font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent font-ubuntu flex items-center">
                   <Brain className="w-5 h-5 mr-2 text-emerald-400 animate-pulse" />
                   AI Analysis
                 </h4>
@@ -371,12 +371,12 @@ const AdvancedCalculatorHub: React.FC = () => {
                     <div className="w-3 h-3 bg-teal-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                     <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                   </div>
-                  <p className="text-slate-gray font-inter text-center text-sm">🧠 AI analyzing...</p>
+                  <p className="text-slate-gray font-ubuntu text-center text-sm">🧠 AI analyzing...</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="bg-jet-black rounded-lg p-4 border border-emerald-500/10 max-h-40 overflow-y-auto">
-                    <p className="text-xs text-soft-white font-inter leading-relaxed">
+                    <p className="text-xs text-soft-white font-ubuntu leading-relaxed">
                       {aiAnalysis.analysis?.replace(/\*/g, '') || 'AI analysis complete.'}
                     </p>
                   </div>
@@ -423,10 +423,10 @@ const AdvancedCalculatorHub: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Advanced <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">Financial Calculator Suite</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Professional-grade calculators with AI insights, predictions, and comprehensive analysis.
           </p>
         </div>
@@ -447,7 +447,7 @@ const AdvancedCalculatorHub: React.FC = () => {
                     setShowBusinessCalculator(false);
                   }
                 }}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 font-inter ${
+                className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 font-ubuntu ${
                   (activeCalculator === calc.id && !showBusinessCalculator) || (calc.id === 'business' && showBusinessCalculator)
                     ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white shadow-lg transform scale-105'
                     : 'bg-charcoal-gray text-soft-white hover:bg-jet-black border border-slate-gray/30 hover:border-emerald-400/50'
@@ -465,13 +465,13 @@ const AdvancedCalculatorHub: React.FC = () => {
         ) : (
           <div className="max-w-6xl mx-auto">
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-2xl font-semibold mb-4 flex items-center font-inter text-soft-white">
+              <h3 className="text-2xl font-semibold mb-4 flex items-center font-ubuntu text-soft-white">
                 <Calculator className="w-6 h-6 mr-2 text-emerald-400" />
                 {calculators.find(c => c.id === activeCalculator)?.name}
               </h3>
               
               <div className="mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-lg border border-emerald-500/20">
-                <p className="text-soft-white font-inter leading-relaxed">
+                <p className="text-soft-white font-ubuntu leading-relaxed">
                   {calculators.find(c => c.id === activeCalculator)?.definition}
                 </p>
               </div>

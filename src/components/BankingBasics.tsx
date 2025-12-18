@@ -132,10 +132,10 @@ const BankingBasics: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Banking <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-400 bg-clip-text text-transparent">Basics</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Simple explanations of banking concepts in easy language. Perfect for first-time bank users, students, and anyone new to banking.
           </p>
         </div>
@@ -145,7 +145,7 @@ const BankingBasics: React.FC = () => {
             {/* Navigation Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-charcoal-gray rounded-2xl p-6 border border-slate-gray/20 sticky top-24">
-                <h3 className="font-semibold mb-4 flex items-center text-soft-white font-inter">
+                <h3 className="font-semibold mb-4 flex items-center text-soft-white font-ubuntu">
                   <Book className="w-5 h-5 mr-2 text-emerald-400" />
                   Topics
                 </h3>
@@ -163,7 +163,7 @@ const BankingBasics: React.FC = () => {
                         }`}
                       >
                         <Icon className="w-4 h-4" />
-                        <span className="text-sm font-medium font-inter">{section.title}</span>
+                        <span className="text-sm font-medium font-ubuntu">{section.title}</span>
                       </button>
                     );
                   })}
@@ -177,23 +177,23 @@ const BankingBasics: React.FC = () => {
                 <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
                   <div className="flex items-center mb-6">
                     <currentSection.icon className="w-8 h-8 text-emerald-400 mr-3" />
-                    <h3 className="text-2xl font-semibold text-soft-white font-inter">{currentSection.title}</h3>
+                    <h3 className="text-2xl font-semibold text-soft-white font-ubuntu">{currentSection.title}</h3>
                   </div>
 
                   {/* Simple Explanation */}
                   <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 p-6 rounded-lg mb-6 border border-emerald-500/20">
-                    <h4 className="font-semibold text-emerald-400 mb-3 flex items-center font-inter">
+                    <h4 className="font-semibold text-emerald-400 mb-3 flex items-center font-ubuntu">
                       <Users className="w-5 h-5 mr-2" />
                       Simple Explanation
                     </h4>
-                    <p className="text-soft-white text-lg leading-relaxed font-inter">
+                    <p className="text-soft-white text-lg leading-relaxed font-ubuntu">
                       {currentSection.content.simple}
                     </p>
                   </div>
 
                   {/* Detailed Information */}
                   <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-6 rounded-lg border border-blue-500/20">
-                    <h4 className="font-semibold text-blue-400 mb-4 flex items-center font-inter">
+                    <h4 className="font-semibold text-blue-400 mb-4 flex items-center font-ubuntu">
                       <HelpCircle className="w-5 h-5 mr-2" />
                       Key Points to Remember
                     </h4>
@@ -201,7 +201,7 @@ const BankingBasics: React.FC = () => {
                       {currentSection.content.detailed.map((point, index) => (
                         <li key={index} className="flex items-start space-x-3">
                           <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-soft-white font-inter">{point}</span>
+                          <span className="text-soft-white font-ubuntu">{point}</span>
                         </li>
                       ))}
                     </ul>
@@ -211,7 +211,7 @@ const BankingBasics: React.FC = () => {
 
               {/* Tips Section */}
               <div className="mt-8">
-                <h3 className="text-2xl font-semibold mb-6 text-center text-soft-white font-inter">💡 Important Tips for New Users</h3>
+                <h3 className="text-2xl font-semibold mb-6 text-center text-soft-white font-ubuntu">💡 Important Tips for New Users</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   {tips.map((tip, index) => {
                     const Icon = tip.icon;
@@ -220,8 +220,8 @@ const BankingBasics: React.FC = () => {
                         <div className="flex items-start space-x-3">
                           <Icon className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-1" />
                           <div>
-                            <h4 className="font-semibold text-soft-white mb-2 font-inter">{tip.title}</h4>
-                            <p className="text-sm text-slate-gray font-inter">{tip.tip}</p>
+                            <h4 className="font-semibold text-soft-white mb-2 font-ubuntu">{tip.title}</h4>
+                            <p className="text-sm text-slate-gray font-ubuntu">{tip.tip}</p>
                           </div>
                         </div>
                       </div>
@@ -232,8 +232,8 @@ const BankingBasics: React.FC = () => {
 
               {/* Call to Action */}
               <div className="mt-8 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-2xl p-8 border border-emerald-500/20 text-center">
-                <h3 className="text-xl font-semibold mb-4 text-soft-white font-inter">Ready to Start Your Banking Journey?</h3>
-                <p className="mb-6 text-slate-gray font-inter">Use our calculators to plan your finances or take a quiz to test your knowledge!</p>
+                <h3 className="text-xl font-semibold mb-4 text-soft-white font-ubuntu">Ready to Start Your Banking Journey?</h3>
+                <p className="mb-6 text-slate-gray font-ubuntu">Use our calculators to plan your finances or take a quiz to test your knowledge!</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button className="bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300">
                     Try Calculators
