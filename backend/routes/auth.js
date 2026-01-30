@@ -1,229 +1,138 @@
+// backend/routes/auth.js
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const asyncHandler = require('express-async-handler');
 const User = require('../models/user');
-const Wallet = require('../models/Wallet');
-const authMiddleware = require('../middleware/auth'); // ✅ Changed from 'auth' to 'authMiddleware'
 
 const router = express.Router();
 
-router.post('/signup', async (req, res) => {
+/**
+ * Sign Up - Create new user account
+ * POST /api/auth/signup
+ */
+router.post('/signup', asyncHandler(async (req, res, next) => {
   try {
-    const { fullName, email, password, confirmPassword, firebaseUid } = req.body;
+    const { fullName, email, password, firebaseUid } = req.body || {};
 
-    // 🔹 FIREBASE SIGNUP
-    if (firebaseUid) {
-      let user = await User.findOne({ firebaseUid });
-
-      if (!user) {
-        const safeFullName = fullName || (email ? email.split('@')[0] : 'User');
-
-        user = new User({
-          fullName: safeFullName,
-          email,
-          firebaseUid,
-          authProvider: 'firebase'
-        });
-        await user.save();
-      }
-
-      // Ensure wallet exists for this user
-      await Wallet.updateOne(
-        { userId: user._id },
-        {
-          $setOnInsert: {
-            userId: user._id,
-            name: 'Primary Wallet',
-            currency: 'INR',
-            balance: 0,
-            status: 'active'
-          }
-        },
-        { upsert: true }
-      );
-
-      const token = jwt.sign(
-        { userId: user._id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      return res.status(201).json({
-        message: 'Firebase user created',
-        token,
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email
-        }
-      });
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email is required' });
     }
 
-    // 🔹 MONGO SIGNUP (existing logic)
-    if (confirmPassword && password !== confirmPassword) {
-      return res.status(400).json({ error: 'Passwords do not match' });
-    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
-    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      // If firebase sign-in and firebaseUid present, return token for convenience
+      if (firebaseUid && existingUser.firebaseUid) {
+        const token = jwt.sign(
+          { userId: existingUser._id, email: existingUser.email },
+          process.env.JWT_SECRET,
+          { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1d' }
+        );
+        return res.status(200).json({
+          success: true,
+          message: 'User already exists',
+          token,
+          user: { id: existingUser._id, fullName: existingUser.fullName, email: existingUser.email }
+        });
+      }
+      return res.status(409).json({ success: false, error: 'Email already registered. Please sign in instead.' });
     }
 
-    const user = new User({
-      fullName,
-      email,
-      password,
-      authProvider: 'mongo'
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    const newUser = await User.create({
+      fullName: fullName || 'User',
+      email: normalizedEmail,
+      password: hashedPassword,
+      firebaseUid: firebaseUid || null
     });
 
-    await user.save();
+    const token = jwt.sign({ userId: newUser._id, email: newUser.email }, process.env.JWT_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1d'
+    });
 
-    // Ensure wallet exists for this user
-    await Wallet.updateOne(
-      { userId: user._id },
-      {
-        $setOnInsert: {
-          userId: user._id,
-          name: 'Primary Wallet',
-          currency: 'INR',
-          balance: 0,
-          status: 'active'
-        }
-      },
-      { upsert: true }
-    );
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    console.log('✅ New user created:', newUser.email);
 
     res.status(201).json({
-      message: 'User created successfully',
+      success: true,
+      message: 'Account created successfully',
       token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email
-      }
+      user: { id: newUser._id, fullName: newUser.fullName, email: newUser.email }
     });
-  } catch (error) {
-    console.error('Signup error:', error); // ✅ Add logging
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    // asyncHandler will automatically catch and forward errors
+    throw err;
   }
-});
+}));
 
-
-// Sign In
-router.post('/signin', async (req, res) => {
+/**
+ * Sign In - Authenticate existing user
+ * POST /api/auth/signin
+ */
+router.post('/signin', asyncHandler(async (req, res, next) => {
   try {
-    const { email, password, firebaseUid, fullName } = req.body;
-
-    // 🔥 FIREBASE SIGNIN
-    if (firebaseUid) {
-      let user = await User.findOne({ firebaseUid });
-
-      // If user doesn't exist, create them
-      if (!user) {
-        const safeFullName = fullName || (email ? email.split('@')[0] : 'User');
-
-        user = new User({
-          fullName: safeFullName,
-          email,
-          firebaseUid,
-          authProvider: 'firebase'
-        });
-        await user.save();
-      }
-
-      // Ensure wallet exists for this user
-      await Wallet.updateOne(
-        { userId: user._id },
-        {
-          $setOnInsert: {
-            userId: user._id,
-            name: 'Primary Wallet',
-            currency: 'INR',
-            balance: 0,
-            status: 'active'
-          }
-        },
-        { upsert: true }
-      );
-
-      // Generate JWT
-      const token = jwt.sign(
-        { userId: user._id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      return res.json({
-        message: 'Firebase login successful',
-        token,
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email
-        }
-      });
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'Email and password are required' });
     }
 
-    // 🔹 MONGO SIGNIN (existing logic)
-    // Find user
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    if (!user) return res.status(401).json({ success: false, error: 'Invalid email or password' });
+
+    if (!user.password) {
+      return res.status(400).json({ success: false, error: 'Account created with Google. Please sign in with Google.' });
     }
 
-    // Check if user is Firebase-only
-    if (user.authProvider === 'firebase') {
-      return res.status(400).json({ error: 'Please sign in with Google' });
-    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) return res.status(401).json({ success: false, error: 'Invalid email or password' });
 
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1d'
+    });
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    console.log('✅ User signed in:', user.email);
 
-    res.json({
-      message: 'Login successful',
+    res.status(200).json({
+      success: true,
+      message: 'Signed in successfully',
       token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email
-      }
+      user: { id: user._id, fullName: user.fullName, email: user.email }
     });
-  } catch (error) {
-    console.error('Signin error:', error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    throw err;
   }
-});
+}));
 
-// ✅ Use authMiddleware instead of auth
-router.get('/me', authMiddleware, async (req, res) => {
+/**
+ * Verify token (GET /api/auth/verify)
+ */
+router.get('/verify', asyncHandler(async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).select('-password -confirmPassword');
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const authHeader = req.header('Authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
-    res.json({ user });
-  } catch (error) {
-    console.error('Get user error:', error); // ✅ Add logging
-    res.status(500).json({ error: error.message });
+    if (!token) return res.status(401).json({ success: false, error: 'No token provided' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    res.status(200).json({ success: true, user: { id: user._id, fullName: user.fullName, email: user.email } });
+  } catch (err) {
+    throw err;
   }
+}));
+
+/**
+ * Logout (client handles token removal; route included for completeness)
+ */
+router.post('/logout', (req, res) => {
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
 });
 
 module.exports = router;

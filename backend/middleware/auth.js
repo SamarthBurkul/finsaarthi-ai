@@ -1,44 +1,130 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * JWT Authentication Middleware
+ * Protects routes by verifying JWT tokens
+ * Supports both production tokens and development x-user-id header
+ */
 const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
-    // Dev shortcut: allow explicit user id header when not in production
+    // Development mode bypass (only for local testing)
+    // NEVER enable this in production
     if (!token && process.env.NODE_ENV !== 'production' && req.headers['x-user-id']) {
+      console.warn('⚠️  Using development auth bypass with x-user-id header');
       req.user = { id: String(req.headers['x-user-id']) };
       req.userId = req.user.id;
       return next();
     }
 
+    // Check if token exists
     if (!token) {
-      return res.status(401).json({ success: false, error: 'Authentication required' });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required',
+        message: 'No token provided. Please include Authorization: Bearer <token> header'
+      });
     }
 
+    // Verify JWT_SECRET is configured
     const secret = process.env.JWT_SECRET;
     if (!secret) {
-      return res.status(500).json({ success: false, error: 'Missing JWT_SECRET in environment' });
+      console.error('🔴 CRITICAL: JWT_SECRET not configured in environment');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error',
+        message: 'Authentication system is not properly configured'
+      });
     }
 
-    const decoded = jwt.verify(token, secret);
+    // Verify and decode token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, secret);
+    } catch (jwtError) {
+      // Handle specific JWT errors
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          success: false, 
+          error: 'Token expired',
+          message: 'Your session has expired. Please log in again.',
+          expiredAt: jwtError.expiredAt
+        });
+      }
+      
+      if (jwtError.name === 'JsonWebTokenError') {
+        return res.status(401).json({ 
+          success: false, 
+          error: 'Invalid token',
+          message: 'The provided token is invalid or malformed'
+        });
+      }
+      
+      // Generic JWT error
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Token verification failed',
+        message: jwtError.message
+      });
+    }
     
-    // Support multiple ID formats from different auth providers
+    // Extract user ID from token (support multiple formats)
     const id = decoded?.userId || decoded?.id || decoded?._id || decoded?.sub;
 
     if (!id) {
-      return res.status(401).json({ success: false, error: 'Invalid token claims' });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid token claims',
+        message: 'Token does not contain valid user identification'
+      });
     }
 
-    // Set both req.user and req.userId for compatibility with all routes
-    req.user = { id: String(id), email: decoded.email, claims: decoded };
+    // Attach user info to request object for use in controllers
+    req.user = { 
+      id: String(id), 
+      email: decoded.email,
+      claims: decoded 
+    };
     req.userId = String(id);
     req.email = decoded.email;
 
+    // Log successful authentication in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`✅ Authenticated user: ${req.userId} (${req.email || 'no email'})`);
+    }
+
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    console.error('❌ Auth middleware error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Authentication error',
+      message: 'An error occurred during authentication'
+    });
   }
 };
 
+/**
+ * Optional middleware to verify user ownership of a resource
+ * Use after authMiddleware for additional protection
+ */
+const verifyOwnership = (resourceUserIdField = 'userId') => {
+  return (req, res, next) => {
+    const resourceUserId = req.params[resourceUserIdField] || req.body[resourceUserIdField];
+    
+    if (resourceUserId && String(resourceUserId) !== String(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'You do not have permission to access this resource'
+      });
+    }
+    
+    next();
+  };
+};
+
 module.exports = authMiddleware;
+module.exports.verifyOwnership = verifyOwnership;
