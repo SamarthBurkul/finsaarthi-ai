@@ -1,18 +1,18 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const TransactionSchema = new mongoose.Schema(
+const transactionSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      index: true,
-      ref: 'User'
+      index: true
     },
-    wallet: {
+    walletId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Wallet",
       required: true,
-      index: true,
-      ref: 'Wallet'
+      index: true
     },
     txHash: {
       type: String,
@@ -23,7 +23,7 @@ const TransactionSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['credit', 'debit'],
+      enum: ["credit", "debit"],
       index: true
     },
     amount: {
@@ -34,22 +34,23 @@ const TransactionSchema = new mongoose.Schema(
     currency: {
       type: String,
       trim: true,
-      uppercase: true
+      uppercase: true,
+      default: "INR"
     },
     description: {
       type: String,
       trim: true,
-      default: ''
+      default: ""
     },
     category: {
       type: String,
       trim: true,
-      default: 'general'
+      default: "general"
     },
     status: {
       type: String,
-      enum: ['pending', 'completed', 'failed'],
-      default: 'completed',
+      enum: ["pending", "completed", "failed"],
+      default: "completed",
       index: true
     },
     occurredAt: {
@@ -65,4 +66,6 @@ const TransactionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Transaction', TransactionSchema);
+transactionSchema.index({ userId: 1, walletId: 1, occurredAt: -1 });
+
+module.exports = mongoose.model("Transaction", transactionSchema);
