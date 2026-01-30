@@ -5,15 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "nodemon index.js",
+    "start:server": "node index.js",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.1.0",
     "@supabase/supabase-js": "^2.57.4",
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "firebase": "^12.7.0",
+    "framer-motion": "^12.23.26",
+    "idb": "^8.0.3",
+    "jsonwebtoken": "^9.0.3",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.344.0",
+    "mongoose": "^9.0.1",
+    "node-fetch": "^3.3.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -23,14 +37,29 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
+    "daisyui": "^5.5.14",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
+    "nodemon": "^3.1.11",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
-  }
+    "vite": "^7.3.0"
+  },
+  "description": "**AI-Powered Financial Platform for Everyone**",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamarthBurkul/fin-mentor-ai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SamarthBurkul/fin-mentor-ai/issues"
+  },
+  "homepage": "https://github.com/SamarthBurkul/fin-mentor-ai#readme"
 }

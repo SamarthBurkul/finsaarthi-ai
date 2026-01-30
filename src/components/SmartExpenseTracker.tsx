@@ -134,59 +134,113 @@ const SmartExpenseTracker: React.FC = () => {
     setIsAnalyzing(false);
   };
 
-  const LineChartComponent = ({ data, title }: { data: any[], title: string }) => {
-    const maxValue = Math.max(...data.map(item => item.value));
-    const points = data.map((item, index) => ({
-      x: (index / (data.length - 1)) * 300,
-      y: 150 - (item.value / maxValue) * 120
-    }));
-
+  const LineChartComponent = ({ data, title }: { data: any[]; title: string }) => {
+  // defensive defaults
+  if (!data || data.length === 0) {
     return (
       <div className="bg-jet-black rounded-xl p-6">
         <h4 className="text-lg font-bold text-soft-white mb-4 text-center">{title}</h4>
-        <svg width="320" height="180" className="mx-auto">
-          <defs>
-            <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#FF6B6B" />
-              <stop offset="50%" stopColor="#4ECDC4" />
-              <stop offset="100%" stopColor="#45B7D1" />
-            </linearGradient>
-          </defs>
-          
-          {[0, 1, 2, 3, 4].map(i => (
-            <line key={i} x1="10" y1={30 + i * 30} x2="310" y2={30 + i * 30} stroke="#374151" strokeWidth="0.5" />
-          ))}
-          
-          <path
-            d={`M ${points.map(p => `${p.x + 10},${p.y + 30}`).join(' L ')}`}
-            stroke="url(#expenseGradient)"
-            strokeWidth="3"
-            fill="none"
-          />
-          
-          {points.map((point, index) => (
-            <circle
-              key={index}
-              cx={point.x + 10}
-              cy={point.y + 30}
-              r="4"
-              fill="#FF6B6B"
-              className="hover:r-6 transition-all"
-            />
-          ))}
-        </svg>
-        
-        <div className="flex justify-between mt-4 text-sm">
-          {data.map((item, index) => (
-            <div key={index} className="text-center">
-              <p className="text-white">{item.label}</p>
-              <p className="text-soft-white font-bold">₹{(item.value / 1000).toFixed(1)}K</p>
-            </div>
-          ))}
-        </div>
+        <div className="flex items-center justify-center text-slate-gray">No data</div>
       </div>
     );
-  };
+  }
+
+  // ensure maxValue is at least 1 to avoid division by zero
+  const rawValues = data.map((d) => Number(d.value) || 0);
+  const maxValue = Math.max(...rawValues, 1);
+  const width = 300;
+  const height = 150;
+  const paddingX = 10;
+  const paddingY = 30;
+  const usableWidth = width;
+  const usableHeight = height;
+
+  const pointCount = data.length;
+  const points = rawValues.map((val, idx) => {
+    // when there's only one point, place it near the middle
+    const x =
+      pointCount === 1 ? usableWidth / 2 : (idx / Math.max(1, pointCount - 1)) * usableWidth;
+    // clamp computed y to avoid NaN / Infinity
+    const ratio = isFinite(maxValue) && maxValue > 0 ? val / maxValue : 0;
+    const y = usableHeight - ratio * (usableHeight * 0.8); // leave top/bottom padding visually
+    return { x: Math.round(x), y: Math.round(y) };
+  });
+
+  // build path string only if we have valid points
+  const pathD =
+    points.length > 0
+      ? points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x + paddingX},${p.y + paddingY}`).join(" ")
+      : "";
+
+  // prepare small ticks/labels for bottom (safe mapping)
+  const labels = data.map((d, i) => ({
+    label: d.label || `${i + 1}`,
+    value: d.value || 0,
+  }));
+
+  return (
+    <div className="bg-jet-black rounded-xl p-6">
+      <h4 className="text-lg font-bold text-soft-white mb-4 text-center">{title}</h4>
+
+      <svg width={width + paddingX * 2} height={height + paddingY * 2} className="mx-auto block">
+        {/* gridlines */}
+        {[0, 1, 2, 3, 4].map((i) => (
+          <line
+            key={i}
+            x1={paddingX}
+            y1={paddingY + (i * (usableHeight / 4))}
+            x2={paddingX + usableWidth}
+            y2={paddingY + (i * (usableHeight / 4))}
+            stroke="#374151"
+            strokeWidth={0.5}
+            strokeOpacity={0.8}
+          />
+        ))}
+
+        {/* path */}
+        {pathD && (
+          <path
+            d={pathD}
+            stroke="url(#expenseGradient)"
+            strokeWidth={3}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+
+        {/* gradient definition */}
+        <defs>
+          <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#FF6B6B" />
+            <stop offset="50%" stopColor="#4ECDC4" />
+            <stop offset="100%" stopColor="#45B7D1" />
+          </linearGradient>
+        </defs>
+
+        {/* points */}
+        {points.map((p, idx) => {
+          // ensure numeric
+          const cx = Number(p.x) + paddingX;
+          const cy = Number(p.y) + paddingY;
+          if (!isFinite(cx) || !isFinite(cy)) return null;
+          return <circle key={idx} cx={cx} cy={cy} r={4} fill="#FF6B6B" />;
+        })}
+      </svg>
+
+      {/* bottom labels */}
+      <div className="flex justify-between mt-4 text-sm">
+        {labels.map((item, index) => (
+          <div key={index} className="text-center truncate" style={{ width: `${100 / labels.length}%` }}>
+            <p className="text-white">{item.label}</p>
+            <p className="text-soft-white font-bold">₹{(item.value / 1000).toFixed(1)}K</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
   const PieChartComponent = ({ data, title }: { data: CategoryData[], title: string }) => {
     const total = data.reduce((sum, item) => sum + item.amount, 0);
@@ -343,10 +397,10 @@ const SmartExpenseTracker: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart Expense <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 bg-clip-text text-transparent">Tracker</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Track every payment, understand your spending, and save smarter with AI insights
           </p>
         </div>

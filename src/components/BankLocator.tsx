@@ -62,7 +62,12 @@ const BankLocator: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-jet-black relative overflow-hidden">
+    <section className="py-16 relative overflow-hidden bg-[#0C2B4E]">
+  <div className="
+    absolute inset-0
+    bg-gradient-to-br from-black/40 to-slate-900/60
+    backdrop-blur-xl
+  "></div>
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-3xl"></div>
@@ -70,10 +75,10 @@ const BankLocator: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Find Nearest <span className="bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-400 bg-clip-text text-transparent">Banks & ATMs</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Locate banks and ATMs near you with distance, directions, and contact information. Perfect for rural areas and emergency situations.
           </p>
         </div>
@@ -81,7 +86,7 @@ const BankLocator: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {/* Search Section */}
           <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20 mb-8">
-            <h3 className="text-xl font-semibold mb-6 flex items-center text-soft-white font-inter">
+            <h3 className="text-xl font-semibold mb-6 flex items-center text-soft-white font-ubuntu">
               <Search className="w-5 h-5 mr-2 text-emerald-400" />
               Search Location
             </h3>
@@ -93,7 +98,7 @@ const BankLocator: React.FC = () => {
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
                   placeholder="Enter your area, city, or pincode..."
-                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-4 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter text-lg"
+                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-4 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu text-lg"
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
@@ -102,7 +107,7 @@ const BankLocator: React.FC = () => {
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value as 'all' | 'bank' | 'atm')}
-                  className="bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-4 text-soft-white focus:border-emerald-400 focus:outline-none font-inter"
+                  className="bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-4 text-soft-white focus:border-emerald-400 focus:outline-none font-ubuntu"
                 >
                   <option value="all">All</option>
                   <option value="bank">Banks Only</option>
@@ -133,7 +138,7 @@ const BankLocator: React.FC = () => {
           {/* Results Section */}
           {results.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold flex items-center text-soft-white font-inter">
+              <h3 className="text-xl font-semibold flex items-center text-soft-white font-ubuntu">
                 <MapPin className="w-5 h-5 mr-2 text-emerald-400" />
                 Found {results.length} locations near "{searchLocation}"
               </h3>
@@ -146,7 +151,7 @@ const BankLocator: React.FC = () => {
                         <div className={`w-3 h-3 rounded-full ${
                           location.type === 'bank' ? 'bg-blue-400' : 'bg-emerald-400'
                         }`}></div>
-                        <h4 className="text-lg font-semibold text-soft-white font-inter">{location.name}</h4>
+                        <h4 className="text-lg font-semibold text-soft-white font-ubuntu">{location.name}</h4>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           location.type === 'bank' 
                             ? 'bg-blue-500/20 text-blue-400' 
@@ -156,7 +161,7 @@ const BankLocator: React.FC = () => {
                         </span>
                       </div>
                       
-                      <p className="text-white mb-2 flex items-center font-inter">
+                      <p className="text-white mb-2 flex items-center font-ubuntu">
                         <MapPin className="w-4 h-4 mr-1" />
                         {location.address}
                       </p>
@@ -196,11 +201,11 @@ const BankLocator: React.FC = () => {
 
           {/* Open Google Maps */}
           <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20 mb-8 text-center">
-            <h3 className="text-xl font-semibold mb-4 flex items-center justify-center font-inter text-soft-white">
+            <h3 className="text-xl font-semibold mb-4 flex items-center justify-center font-ubuntu text-soft-white">
               <MapPin className="w-5 h-5 mr-2 text-emerald-400" />
               Find Banks & ATMs on Map
             </h3>
-            <p className="text-white mb-6 font-inter">
+            <p className="text-white mb-6 font-ubuntu">
               Open Google Maps to see all nearby banks and ATMs with real-time directions
             </p>
             <button
@@ -216,8 +221,8 @@ const BankLocator: React.FC = () => {
           {results.length === 0 && searchLocation && !isSearching && (
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20 text-center">
               <MapPin className="w-16 h-16 text-white mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2 text-soft-white font-inter">No locations found</h3>
-              <p className="text-white mb-4 font-inter">
+              <h3 className="text-xl font-semibold mb-2 text-soft-white font-ubuntu">No locations found</h3>
+              <p className="text-white mb-4 font-ubuntu">
                 Try searching with a different location or check your spelling.
               </p>
               <button
@@ -234,15 +239,15 @@ const BankLocator: React.FC = () => {
 
           {/* Help Section */}
           <div className="mt-12 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-2xl p-8 border border-emerald-500/20">
-            <h3 className="text-xl font-semibold mb-4 flex items-center text-soft-white font-inter">
+            <h3 className="text-xl font-semibold mb-4 flex items-center text-soft-white font-ubuntu">
               <Filter className="w-5 h-5 mr-2 text-emerald-400" />
               How to Use Bank Locator
             </h3>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold mb-2 text-soft-white font-inter">🔍 Search Tips:</h4>
-                <ul className="text-sm text-white space-y-1 font-inter">
+                <h4 className="font-semibold mb-2 text-soft-white font-ubuntu">🔍 Search Tips:</h4>
+                <ul className="text-sm text-white space-y-1 font-ubuntu">
                   <li>• Enter your area name, city, or pincode</li>
                   <li>• Use landmarks like "Near Metro Station"</li>
                   <li>• Try different spellings if no results</li>
@@ -251,8 +256,8 @@ const BankLocator: React.FC = () => {
               </div>
               
               <div>
-                <h4 className="font-semibold mb-2 text-soft-white font-inter">📍 What You Get:</h4>
-                <ul className="text-sm text-white space-y-1 font-inter">
+                <h4 className="font-semibold mb-2 text-soft-white font-ubuntu">📍 What You Get:</h4>
+                <ul className="text-sm text-white space-y-1 font-ubuntu">
                   <li>• Exact distance from your location</li>
                   <li>• Complete address and directions</li>
                   <li>• Operating hours and contact info</li>
@@ -262,7 +267,7 @@ const BankLocator: React.FC = () => {
             </div>
             
             <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <p className="text-sm text-white font-inter">
+              <p className="text-sm text-white font-ubuntu">
                 <strong>💡 Pro Tip:</strong> Save frequently visited bank locations in your phone's notes for quick access during emergencies.
               </p>
             </div>

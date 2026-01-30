@@ -1,27 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { PiggyBank, Target, TrendingUp, Award, Download, Calendar, Coins, Zap } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { savingsService } from '../api/savingsService';
 
 const SmartSavings: React.FC = () => {
   const [dailyGoal, setDailyGoal] = useState(20);
   const [customAmount, setCustomAmount] = useState('');
+  const [activePreset, setActivePreset] = useState<number | null>(20); // Track active preset button
   const [currentSavings, setCurrentSavings] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [daysSaved, setDaysSaved] = useState(0);
   const [selectedGoal, setSelectedGoal] = useState('');
   const [goalPrice, setGoalPrice] = useState('');
   const [todaySaved, setTodaySaved] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [piggyAnimation, setPiggyAnimation] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [backendGoals, setBackendGoals] = useState<any[]>([]);
 
-  const goals = [
-    { name: 'Mobile Phone', price: 15000 },
-    { name: 'Laptop', price: 50000 },
-    { name: 'Bike', price: 80000 },
-    { name: 'Emergency Fund', price: 100000 },
-    { name: 'Travel', price: 25000 },
-    { name: 'College Fees', price: 200000 }
+  const predefinedGoals = [
+    { name: 'Mobile Phone', price: 15000, id: 'phone' },
+    { name: 'Laptop', price: 50000, id: 'laptop' },
+    { name: 'Bike', price: 80000, id: 'bike' },
+    { name: 'Emergency Fund', price: 100000, id: 'emergency' },
+    { name: 'Travel', price: 25000, id: 'travel' },
+    { name: 'College Fees', price: 200000, id: 'college' }
   ];
+
+  // Combine predefined and backend goals
+  const allGoals = [
+    ...predefinedGoals,
+    ...backendGoals.map(g => ({ name: g.goalName, price: g.targetAmount, id: g._id }))
+  ];
+
+  // Load savings state from backend
+  useEffect(() => {
+    loadSavingsState();
+    loadBackendGoals();
+  }, []);
+
+  const loadSavingsState = async () => {
+    try {
+      setLoading(true);
+      const state = await savingsService.getState();
+      setDailyGoal(state.dailyGoal);
+      // Set active preset if dailyGoal matches a preset
+      if ([10, 20, 50].includes(state.dailyGoal)) {
+        setActivePreset(state.dailyGoal);
+      } else {
+        setActivePreset(null);
+        setCustomAmount(state.dailyGoal.toString());
+      }
+      setCurrentSavings(state.currentSavings);
+      setStreak(state.streak);
+      setDaysSaved(state.daysSaved);
+      setSelectedGoal(state.selectedGoal || '');
+      setGoalPrice(state.goalPrice ? state.goalPrice.toString() : '');
+      
+      // Check if saved today
+      const lastSaved = state.lastSavedDate ? new Date(state.lastSavedDate) : null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (lastSaved) {
+        const lastSavedDate = new Date(lastSaved);
+        lastSavedDate.setHours(0, 0, 0, 0);
+        setTodaySaved(lastSavedDate.getTime() === today.getTime());
+      }
+    } catch (err: any) {
+      console.error('Error loading savings:', err);
+      setError('Failed to load savings data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBackendGoals = async () => {
+    try {
+      const fetchedGoals = await savingsService.getAllGoals();
+      setBackendGoals(fetchedGoals);
+    } catch (err: any) {
+      console.error('Error loading backend goals:', err);
+      // Don't show error to user, just use default goals
+    }
+  };
 
   const calculateProjections = (amount: number) => ({
     tenDays: amount * 10,
@@ -30,161 +94,156 @@ const SmartSavings: React.FC = () => {
     oneYear: amount * 365
   });
 
-  const markTodaySaved = () => {
-    if (!todaySaved) {
-      setCurrentSavings(prev => prev + dailyGoal);
-      setStreak(prev => prev + 1);
+  const markTodaySaved = async () => {
+    if (todaySaved) {
+      setError('You already saved today! Come back tomorrow 🎉');
+      return;
+    }
+
+    try {
+      setError('');
+      setPiggyAnimation(true); // Start animation immediately
+      const result = await savingsService.saveToday();
+      
+      // Update all states
+      setCurrentSavings(result.currentSavings);
+      setStreak(result.streak);
+      setDaysSaved(result.daysSaved);
       setTodaySaved(true);
-      setPiggyAnimation(true);
+      
+      // Clear error and stop animation
       setTimeout(() => setPiggyAnimation(false), 1000);
+    } catch (err: any) {
+      setPiggyAnimation(false);
+      setError(err.message || 'Failed to save today');
+      console.error('Save today error:', err);
+    }
+  };
+
+  // Handle preset button click with deselection logic
+  const handlePresetClick = async (amount: number) => {
+    try {
+      setError('');
+      
+      // If clicking the active button, deselect it
+      if (activePreset === amount) {
+        setActivePreset(null);
+        setDailyGoal(0);
+        setCustomAmount('');
+        return;
+      }
+      
+      // Otherwise, select this preset
+      await savingsService.updateState({ dailyGoal: amount });
+      setDailyGoal(amount);
+      setActivePreset(amount);
+      setCustomAmount(''); // Clear custom input
+    } catch (err: any) {
+      console.error('Error updating goal:', err);
+      setError(err.message || 'Failed to update goal');
+    }
+  };
+
+  // Handle custom amount input
+  const handleCustomAmount = async (value: string) => {
+    const amount = parseInt(value);
+    if (value && amount > 0) {
+      try {
+        setError('');
+        await savingsService.updateState({ dailyGoal: amount });
+        setDailyGoal(amount);
+        setActivePreset(null); // Deselect all presets
+      } catch (err: any) {
+        console.error('Error updating goal:', err);
+        setError(err.message || 'Failed to update goal');
+      }
+    }
+  };
+
+  // Update selected goal
+  const updateSelectedGoal = async (goal: string, price: number) => {
+    try {
+      await savingsService.updateState({
+        selectedGoal: goal,
+        goalPrice: price
+      });
+      setSelectedGoal(goal);
+      setGoalPrice(price.toString());
+    } catch (err) {
+      console.error('Error updating selected goal:', err);
     }
   };
 
   const analyzeHabits = async () => {
     setIsAnalyzing(true);
+    setError('');
 
     try {
-      const savingsRate = currentSavings > 0 ? (currentSavings / (streak || 1)) : dailyGoal;
-      const monthlyProjection = savingsRate * 30;
-      const yearlyProjection = savingsRate * 365;
+      // Call backend AI analysis endpoint
+      const analysis = await savingsService.getAIAnalysis();
+      setAiAnalysis(analysis);
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      setError('Failed to generate analysis. Showing basic insights.');
       
-      const prompt = `Analyze my savings and provide practical financial advice:
-
-MY SAVINGS DATA:
-- Daily Saving Goal: ₹${dailyGoal}
-- Total Amount Saved: ₹${currentSavings}
-- Saving Streak: ${streak} days
-- Average Daily Savings: ₹${savingsRate.toFixed(0)}
-- Monthly Projection: ₹${monthlyProjection.toFixed(0)}
-- Yearly Projection: ₹${yearlyProjection.toFixed(0)}
-- Current Goal: ${selectedGoal || 'No goal set'}
-- Goal Target: ₹${goalPrice || '0'}
-- Today's Status: ${todaySaved ? 'Saved' : 'Not saved yet'}
-
-Provide practical savings analysis in JSON format:
-{
-  "savingsAssessment": {
-    "currentPerformance": "Excellent/Good/Average/Poor",
-    "savingsRate": "Daily average analysis",
-    "progressEvaluation": "How well user is doing"
-  },
-  "practicalTips": [
-    "Specific tip 1 to save more money",
-    "Specific tip 2 to reduce expenses",
-    "Specific tip 3 to increase savings"
-  ],
-  "smartAdvice": {
-    "increaseGoal": "Should I increase my daily goal and by how much",
-    "expenseReduction": "Where can I cut expenses to save more",
-    "savingStrategy": "Best strategy for my current situation"
-  },
-  "goalGuidance": {
-    "timeToGoal": "Realistic time to achieve current goal",
-    "goalFeasibility": "Is my goal realistic with current savings",
-    "alternativeGoals": "Better goal suggestions if needed"
-  },
-  "moneyManagement": {
-    "emergencyFund": "Emergency fund advice based on my savings",
-    "investmentReadiness": "When should I start investing",
-    "budgetOptimization": "How to optimize my budget"
-  },
-  "nextSteps": [
-    "Action 1 to improve savings",
-    "Action 2 to reach goals faster",
-    "Action 3 for better money management"
-  ]
-}
-
-No formatting symbols. Only JSON.`;
-
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1000,
-          temperature: 0.7
-        })
-      });
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content || '{}';
-      
-      try {
-        const result = JSON.parse(content);
-        setAiAnalysis(result);
-      } catch {
-        setAiAnalysis({
-          savingsAssessment: {
-            currentPerformance: currentSavings > 1000 ? "Good" : "Getting Started",
-            savingsRate: `₹${savingsRate.toFixed(0)} per day average`,
-            progressEvaluation: "Building good saving habits"
-          },
-          practicalTips: [
-            "Track daily expenses to find saving opportunities",
-            "Use the 50-30-20 rule: 50% needs, 30% wants, 20% savings",
-            "Automate savings to make it effortless"
-          ],
-          smartAdvice: {
-            increaseGoal: dailyGoal < 50 ? "Consider increasing to ₹" + (dailyGoal + 10) : "Current goal is good",
-            expenseReduction: "Review subscription services and dining out expenses",
-            savingStrategy: "Start with small amounts and gradually increase"
-          },
-          goalGuidance: {
-            timeToGoal: goalPrice ? `${Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal)} days` : "Set a goal first",
-            goalFeasibility: "Your goal is achievable with consistent saving",
-            alternativeGoals: "Consider emergency fund as first priority"
-          },
-          moneyManagement: {
-            emergencyFund: "Aim for 3-6 months of expenses as emergency fund",
-            investmentReadiness: "Start investing after building emergency fund",
-            budgetOptimization: "Use 50-30-20 budgeting method"
-          },
-          nextSteps: [
-            "Increase daily goal by ₹5-10 when comfortable",
-            "Set up automatic transfers to savings account",
-            "Review and reduce unnecessary expenses"
-          ]
-        });
-      }
-    } catch (error) {
+      // Fallback to basic analysis if backend fails
+      const savingsRate = currentSavings > 0 && daysSaved > 0 ? currentSavings / daysSaved : dailyGoal;
       setAiAnalysis({
         savingsAssessment: {
-          currentPerformance: "Good",
-          savingsRate: `₹${dailyGoal} daily target`,
-          progressEvaluation: "On track with savings goals"
+          currentPerformance: currentSavings > 1000 ? "Good" : "Getting Started",
+          savingsRate: `₹${Math.round(savingsRate)} per day average`,
+          progressEvaluation: "Building good saving habits"
         },
         practicalTips: [
-          "Review monthly expenses to find savings",
-          "Use cashback apps for purchases",
-          "Cook at home more often"
+          "Track daily expenses to find saving opportunities",
+          "Use the 50-30-20 rule: 50% needs, 30% wants, 20% savings",
+          "Automate savings to make it effortless"
         ],
         smartAdvice: {
-          increaseGoal: "Gradually increase savings as income grows",
-          expenseReduction: "Track spending for better control",
-          savingStrategy: "Consistency beats perfection"
+          increaseGoal: dailyGoal < 50 ? `Consider increasing to ₹${dailyGoal + 10}` : "Current goal is good",
+          expenseReduction: "Review subscription services and dining out expenses",
+          savingStrategy: "Start with small amounts and gradually increase"
+        },
+        goalGuidance: {
+          timeToGoal: goalPrice ? `${Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal)} days` : "Set a goal first",
+          goalFeasibility: "Your goal is achievable with consistent saving",
+          alternativeGoals: "Consider emergency fund as first priority"
+        },
+        moneyManagement: {
+          emergencyFund: "Aim for 3-6 months of expenses as emergency fund",
+          investmentReadiness: "Start investing after building emergency fund",
+          budgetOptimization: "Use 50-30-20 budgeting method"
         },
         nextSteps: [
-          "Continue current saving habit",
-          "Set specific financial goals",
-          "Consider investment options"
+          "Increase daily goal by ₹5-10 when comfortable",
+          "Set up automatic transfers to savings account",
+          "Review and reduce unnecessary expenses"
         ]
       });
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    setIsAnalyzing(false);
   };
 
   const projections = calculateProjections(dailyGoal);
   const goalProgress = selectedGoal && goalPrice ? (currentSavings / parseInt(goalPrice)) * 100 : 0;
   const daysToGoal = selectedGoal && goalPrice ? Math.ceil((parseInt(goalPrice) - currentSavings) / dailyGoal) : 0;
 
+  if (loading) {
+    return (
+      <section className="py-16 bg-jet-black min-h-screen flex items-center justify-center">
+        <div className="text-white text-2xl">Loading your savings...</div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-16 bg-jet-black relative overflow-hidden">
+     <section className="py-16 relative overflow-hidden bg-[#0C2B4E]">
+  <div className="
+    absolute inset-0
+    bg-gradient-to-br from-black/40 to-slate-900/60
+    backdrop-blur-xl
+  "></div>
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-3xl"></div>
@@ -193,10 +252,10 @@ No formatting symbols. Only JSON.`;
       <div className="container mx-auto px-4 relative z-10">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart <span className="bg-gradient-to-r from-green-400 via-lime-400 to-emerald-400 bg-clip-text text-transparent">Savings</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter mb-4">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu mb-4">
             Build wealth one day at a time with AI-powered habit tracking
           </p>
           <p className="text-blue-400 font-semibold">
@@ -208,7 +267,7 @@ No formatting symbols. Only JSON.`;
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Daily Goal Selection */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <Target className="w-6 h-6 mr-2 text-emerald-400" />
                 Daily Saving Goal
               </h3>
@@ -218,10 +277,10 @@ No formatting symbols. Only JSON.`;
                   {[10, 20, 50].map(amount => (
                     <button
                       key={amount}
-                      onClick={() => setDailyGoal(amount)}
+                      onClick={() => handlePresetClick(amount)}
                       className={`p-3 rounded-lg font-semibold transition-all ${
-                        dailyGoal === amount
-                          ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white'
+                        activePreset === amount
+                          ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 text-white shadow-lg'
                           : 'border border-slate-gray/30 text-white hover:bg-emerald-500/10'
                       }`}
                     >
@@ -237,9 +296,15 @@ No formatting symbols. Only JSON.`;
                     value={customAmount}
                     onChange={(e) => {
                       setCustomAmount(e.target.value);
-                      if (e.target.value) setDailyGoal(parseInt(e.target.value));
+                      if (e.target.value) {
+                        setActivePreset(null); // Deselect presets when typing
+                      }
                     }}
-                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                    onBlur={(e) => handleCustomAmount(e.target.value)}
+                    disabled={activePreset !== null}
+                    className={`w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu transition-opacity ${
+                      activePreset !== null ? 'opacity-40 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
 
@@ -267,7 +332,7 @@ No formatting symbols. Only JSON.`;
 
             {/* Digital Piggy Bank */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <PiggyBank className="w-6 h-6 mr-2 text-emerald-400" />
                 Your Digital Piggy Bank
               </h3>
@@ -299,13 +364,19 @@ No formatting symbols. Only JSON.`;
                   {todaySaved ? '✅ Today\'s Goal Complete!' : `💰 Save ₹${dailyGoal} Today`}
                 </button>
 
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-2 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm">
                   <div className="text-center">
                     <div className="text-lg font-bold text-blue-400">{streak}</div>
                     <div className="text-white">Day Streak</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-orange-400">{Math.floor(currentSavings / dailyGoal)}</div>
+                    <div className="text-lg font-bold text-orange-400">{daysSaved}</div>
                     <div className="text-white">Days Saved</div>
                   </div>
                 </div>
@@ -314,7 +385,7 @@ No formatting symbols. Only JSON.`;
 
             {/* Goal Attachment */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <Award className="w-6 h-6 mr-2 text-emerald-400" />
                 Life Goals
               </h3>
@@ -323,15 +394,21 @@ No formatting symbols. Only JSON.`;
                 <select
                   value={selectedGoal}
                   onChange={(e) => {
-                    setSelectedGoal(e.target.value);
-                    const goal = goals.find(g => g.name === e.target.value);
-                    if (goal) setGoalPrice(goal.price.toString());
+                    const goalName = e.target.value;
+                    const goal = allGoals.find(g => g.name === goalName);
+                    if (goal) {
+                      updateSelectedGoal(goalName, goal.price);
+                    } else {
+                      setSelectedGoal(goalName);
+                    }
                   }}
-                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-inter"
+                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-ubuntu"
                 >
                   <option value="">Select a goal</option>
-                  {goals.map(goal => (
-                    <option key={goal.name} value={goal.name}>{goal.name}</option>
+                  {allGoals.map((goal, index) => (
+                    <option key={goal.id || goal.name} value={goal.name}>
+                      {goal.name} - ₹{goal.price.toLocaleString()}
+                    </option>
                   ))}
                   <option value="custom">Custom Goal</option>
                 </select>
@@ -342,7 +419,12 @@ No formatting symbols. Only JSON.`;
                     placeholder="Goal price (₹)"
                     value={goalPrice}
                     onChange={(e) => setGoalPrice(e.target.value)}
-                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        updateSelectedGoal('custom', parseInt(e.target.value));
+                      }
+                    }}
+                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                   />
                 )}
 
@@ -466,7 +548,7 @@ No formatting symbols. Only JSON.`;
                     // Header
                     pdf.setFontSize(20);
                     pdf.setTextColor(16, 185, 129);
-                    pdf.text('KANIMA SMART SAVINGS REPORT', 20, 30);
+                    pdf.text('FinSaarthi SMART SAVINGS REPORT', 20, 30);
                     
                     // Savings Summary
                     pdf.setFontSize(14);
@@ -532,7 +614,7 @@ No formatting symbols. Only JSON.`;
                     // Footer
                     pdf.setFontSize(8);
                     pdf.setTextColor(128, 128, 128);
-                    pdf.text('Generated by KANIMA AI - Smart Savings Tracker', 20, 280);
+                    pdf.text('Generated by FinSaarthi AI - Smart Savings Tracker', 20, 280);
                     
                     pdf.save(`Smart_Savings_Report_${new Date().toISOString().split('T')[0]}.pdf`);
                   }}
