@@ -7,7 +7,10 @@
     { "key": "baseUrl", "value": "http://localhost:5000" },
     { "key": "token", "value": "" },
     { "key": "userId", "value": "000000000000000000000001" },
-    { "key": "transactionId", "value": "" }
+    { "key": "transactionId", "value": "" },
+    { "key": "fullName", "value": "Test User" },
+    { "key": "email", "value": "test@example.com" },
+    { "key": "password", "value": "Test123456" }
   ],
   "item": [
     {
@@ -23,6 +26,55 @@
       }
     },
     {
+      "name": "Auth - Signup",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"{{fullName}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"confirmPassword\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signup"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Signin (saves token/userId)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const data = pm.response.json();",
+              "if (data && data.token) { pm.collectionVariables.set('token', data.token); }",
+              "if (data && data.user && data.user.id) { pm.collectionVariables.set('userId', data.user.id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signin"]
+        }
+      }
+    },
+    {
       "name": "Create Wallet",
       "request": {
         "method": "POST",
@@ -33,7 +85,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Primary Wallet\",\n  \"currency\": \"USD\",\n  \"initialBalance\": 1000\n}"
+          "raw": "{\n  \"name\": \"Primary Wallet\",\n  \"currency\": \"INR\",\n  \"initialBalance\": 1000\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/wallet",

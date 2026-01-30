@@ -5,7 +5,7 @@ import { AuthPageProps, SignUpValues } from "../types/auth";
 import { fintechColors as c } from "./fintechTheme";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 
 const SignUp: React.FC<AuthPageProps> = ({
@@ -71,7 +71,7 @@ const SignUp: React.FC<AuthPageProps> = ({
     setIsSubmitting(true);
 
     // 🔥 BACKEND CALL (MongoDB user)
-    const res = await fetch(`${API_URL}/api/auth/signup`, {
+    const res = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

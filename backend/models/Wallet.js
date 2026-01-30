@@ -1,24 +1,24 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const WalletSchema = new mongoose.Schema(
+const walletSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      index: true,
       unique: true,
-      ref: 'User'
+      index: true
     },
     name: {
       type: String,
       trim: true,
-      default: 'Primary Wallet'
+      default: "Primary Wallet"
     },
     currency: {
       type: String,
       trim: true,
       uppercase: true,
-      default: 'USD'
+      default: "INR"
     },
     balance: {
       type: Number,
@@ -27,11 +27,11 @@ const WalletSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'frozen', 'closed'],
-      default: 'active'
+      enum: ["active", "frozen", "closed"],
+      default: "active"
     }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Wallet', WalletSchema);
+module.exports = mongoose.model("Wallet", walletSchema);

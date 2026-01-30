@@ -14,6 +14,7 @@ import AIFinanceBot from "./components/AIFinanceBot";
 import StockMentorAI from "./components/StockMentorAI";
 import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
 import GovernmentBenefits from "./components/GovernmentBenefits";
+import WalletDashboard from "./components/WalletDashboard";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
@@ -24,7 +25,6 @@ import {
   SignUpValues,
 } from "./types/auth";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -58,8 +58,11 @@ function App() {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
-      // Sync with MongoDB backend
-      const response = await fetch(`${API_URL}/api/auth/signup`, {
+
+      // Use the base URL from your env
+      const API_BASE = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API_BASE}/auth/signup`, { // Removed extra '/api' here
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,14 +74,15 @@ function App() {
       
       const data = await response.json();
       
-      // Save JWT token
-      localStorage.setItem('authToken', data.token);
-      setIsAuthenticated(true);
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        setIsAuthenticated(true);
+      }
     } catch (error) {
       console.error('Google auth error:', error);
       throw error;
     }
-  };
+};
 
   const handleSetActiveSection = (section: string) => {
     console.log("Switching to:", section);
@@ -115,6 +119,8 @@ function App() {
         return <SmartBudgetAI />;
       case "government-benefits":
         return <GovernmentBenefits />;
+      case "wallet":
+        return <WalletDashboard />;
       default:
         return <Hero setActiveSection={handleSetActiveSection} />;
     }

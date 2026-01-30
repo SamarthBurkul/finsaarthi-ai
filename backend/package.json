@@ -1,21 +1,22 @@
 {
-  "name": "fin-mentor-ai-backend",
+  "name": "finsarthi-backend",
   "version": "1.0.0",
-  "private": true,
-  "type": "commonjs",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
+    "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.1",
-    "morgan": "^1.10.0",
+    "morgan": "^1.10.1",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {

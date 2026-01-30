@@ -30,6 +30,16 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
   const aboutRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
 
+  const [mounted, setMounted] = useState(false);
+useEffect(() => { setMounted(true); }, []);
+
+// later, where you currently render Spline:
+{mounted ? (
+  <Spline scene="https://prod.spline.design/Mz8zC6sWiyLXB0B2/scene.splinecode" />
+) : (
+  <div className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] rounded-3xl bg-[#081226]" />
+)}
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
