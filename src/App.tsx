@@ -58,6 +58,7 @@ function App() {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
+
       // Use the base URL from your env
       const API_BASE = import.meta.env.VITE_API_URL;
 

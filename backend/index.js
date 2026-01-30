@@ -66,3 +66,12 @@ connectDB()
     console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
   });
+
+  // Add this in backend/index.js
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: "Welcome to FinSaarthi API",
+    documentation: "Use /api/health to check status" 
+  });
+}); 
