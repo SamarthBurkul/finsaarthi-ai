@@ -6,34 +6,57 @@ const alertSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
+    index: true
   },
   transactionId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Expense',
+    ref: 'Transaction',
     required: true,
+    index: true
   },
-  riskScore: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 100,
-  },
-  reasons: [{
+  type: {
     type: String,
-  }],
-  status: {
+    enum: ['fraud', 'overdraft', 'unusual_activity', 'security', 'other'],
+    default: 'fraud',
+    index: true
+  },
+  severity: {
     type: String,
-    enum: ['new', 'reviewed', 'dismissed', 'confirmed'],
-    default: 'new',
+    enum: ['low', 'medium', 'high', 'critical'],
+    default: 'medium',
+    index: true
   },
-  reviewedAt: {
-    type: Date,
-  },
-  reviewNotes: {
+  message: {
     type: String,
+    required: true
   },
+  isRead: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  readAt: {
+    type: Date
+  },
+  isResolved: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  resolvedAt: {
+    type: Date
+  },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  }
 }, {
-  timestamps: true,
+  timestamps: true
 });
+
+// Compound indexes for common queries
+alertSchema.index({ userId: 1, isRead: 1 });
+alertSchema.index({ userId: 1, isResolved: 1 });
+alertSchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Alert', alertSchema);

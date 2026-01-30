@@ -1,12 +1,9 @@
-// src/pages/SignUp.tsx
+// src/components/SignUp.tsx
 import React, { useState } from "react";
 import { AuthPageProps, SignUpValues } from "../types/auth";
-// ✅ file is in the same folder (components)
 import { fintechColors as c } from "./fintechTheme";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
 
 const SignUp: React.FC<AuthPageProps> = ({
   onEmailSignUp,
@@ -41,10 +38,10 @@ const SignUp: React.FC<AuthPageProps> = ({
       return "All fields are required.";
     }
     if (values.fullName.trim().split(" ").length < 2) {
-      return "Enter your full legal name.";
+      return "Enter your full name (first and last).";
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      return "Enter a valid business email.";
+      return "Enter a valid email address.";
     }
     if (values.password.length < 8) {
       return "Password must be at least 8 characters.";
@@ -59,51 +56,68 @@ const SignUp: React.FC<AuthPageProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const validationError = validate();
-  if (validationError) {
-    setError(validationError);
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-
-    // 🔥 BACKEND CALL (MongoDB user)
-    const res = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Signup failed");
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
     }
 
-    console.log("User created successfully:", data.user);
-    
-    // ✅ Redirect to SignIn page after successful signup
-    if (onNavigateTo) {
-      onNavigateTo("signin");
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      console.log('📝 Attempting sign up to:', `${API_BASE_URL}/auth/signup`);
+
+      // Call backend signup endpoint
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: values.fullName,
+          email: values.email,
+          password: values.password
+        }),
+      });
+
+      const data = await res.json();
+      console.log('📥 Sign up response:', data);
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Signup failed");
+      }
+
+      console.log("✅ User created successfully:", data.user);
+      
+      // Show success message briefly
+      setError(null);
+      
+      // Redirect to SignIn page after successful signup
+      setTimeout(() => {
+        if (onNavigateTo) {
+          onNavigateTo("signin");
+        }
+      }, 500);
+      
+    } catch (err: any) {
+      console.error('❌ Sign up error:', err);
+      setError(err.message || "Unable to create account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (err: any) {
-    setError(err.message || "Unable to create account. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const handleGoogle = async () => {
     if (!onGoogleAuth) return;
     try {
       setIsSubmitting(true);
+      setError(null);
       await onGoogleAuth();
     } catch (err: any) {
+      console.error('❌ Google sign-up error:', err);
       setError(err?.message || "Google sign-up failed. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -196,8 +210,7 @@ const SignUp: React.FC<AuthPageProps> = ({
               color: c.textSecondary,
             }}
           >
-            Open a secure account to move money, manage risk, and track markets
-            in real time.
+            Open a secure account to manage your finances with AI-powered insights.
           </p>
         </div>
 
@@ -236,7 +249,8 @@ const SignUp: React.FC<AuthPageProps> = ({
             alignItems: "center",
             justifyContent: "center",
             gap: "0.5rem",
-            cursor: "pointer",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: isSubmitting ? 0.6 : 1,
             marginBottom: "1rem",
           }}
         >
@@ -309,7 +323,8 @@ const SignUp: React.FC<AuthPageProps> = ({
               autoComplete="name"
               value={values.fullName}
               onChange={handleChange("fullName")}
-              placeholder="Jane Doe"
+              placeholder="John Doe"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -319,6 +334,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -333,7 +349,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 color: c.textSecondary,
               }}
             >
-              Business email
+              Email
             </label>
             <input
               id="email"
@@ -341,7 +357,8 @@ const SignUp: React.FC<AuthPageProps> = ({
               autoComplete="email"
               value={values.email}
               onChange={handleChange("email")}
-              placeholder="you@company.com"
+              placeholder="you@example.com"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -351,6 +368,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -371,13 +389,15 @@ const SignUp: React.FC<AuthPageProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
+                disabled={isSubmitting}
                 style={{
                   background: "transparent",
                   border: "none",
                   color: c.accent,
                   fontSize: 11,
-                  cursor: "pointer",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
                   padding: 0,
+                  opacity: isSubmitting ? 0.6 : 1,
                 }}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -390,6 +410,7 @@ const SignUp: React.FC<AuthPageProps> = ({
               value={values.password}
               onChange={handleChange("password")}
               placeholder="At least 8 characters"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -399,6 +420,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -419,13 +441,15 @@ const SignUp: React.FC<AuthPageProps> = ({
               <button
                 type="button"
                 onClick={() => setShowConfirm((s) => !s)}
+                disabled={isSubmitting}
                 style={{
                   background: "transparent",
                   border: "none",
                   color: c.accent,
                   fontSize: 11,
-                  cursor: "pointer",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
                   padding: 0,
+                  opacity: isSubmitting ? 0.6 : 1,
                 }}
               >
                 {showConfirm ? "Hide" : "Show"}
@@ -438,6 +462,7 @@ const SignUp: React.FC<AuthPageProps> = ({
               value={values.confirmPassword}
               onChange={handleChange("confirmPassword")}
               placeholder="Re-enter password"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -447,6 +472,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -462,6 +488,7 @@ const SignUp: React.FC<AuthPageProps> = ({
             <input
               id="terms"
               type="checkbox"
+              disabled={isSubmitting}
               style={{
                 marginTop: 3,
                 width: 12,
@@ -477,21 +504,7 @@ const SignUp: React.FC<AuthPageProps> = ({
                 lineHeight: 1.5,
               }}
             >
-              I agree to the{" "}
-              <a
-                href="/legal/terms"
-                style={{ color: "#c4b5fd", textDecoration: "none" }}
-              >
-                Terms
-              </a>{" "}
-              and{" "}
-              <a
-                href="/legal/privacy"
-                style={{ color: "#c4b5fd", textDecoration: "none" }}
-              >
-                Privacy Policy
-              </a>
-              , including KYC/AML checks required for regulated FinSaarthi services.
+              I agree to the Terms and Privacy Policy
             </label>
           </div>
 
@@ -508,7 +521,8 @@ const SignUp: React.FC<AuthPageProps> = ({
               color: "#020617",
               fontSize: 14,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+              opacity: isSubmitting ? 0.7 : 1,
               marginBottom: "0.85rem",
             }}
           >
@@ -527,14 +541,16 @@ const SignUp: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTo?.("signin")}
+              disabled={isSubmitting}
               style={{
                 color: "#c4b5fd",
                 textDecoration: "none",
                 fontWeight: 500,
                 background: "transparent",
                 border: "none",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
                 padding: 0,
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             >
               Sign in

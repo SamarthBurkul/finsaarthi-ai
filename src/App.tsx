@@ -15,6 +15,7 @@ import StockMentorAI from "./components/StockMentorAI";
 import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
 import GovernmentBenefits from "./components/GovernmentBenefits";
 import WalletDashboard from "./components/WalletDashboard";
+import FraudAlertsDashboard from "./components/FraudAlertsDashboard";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
@@ -25,44 +26,52 @@ import {
   SignUpValues,
 } from "./types/auth";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authPage, setAuthPage] = useState<AuthPageName>("signup");
   const [activeSection, setActiveSection] = useState("home");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Check if user is already logged in (has valid token)
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Optionally verify token with backend
+      // TODO: Optionally verify token with backend
+      console.log('✅ Found existing auth token');
       setIsAuthenticated(true);
     }
+    setIsCheckingAuth(false);
   }, []);
 
-  // MongoDB signup (no Firebase)
+  // MongoDB signup (handled in SignUp component)
   const handleEmailSignUp = async (values: SignUpValues) => {
     // SignUp component handles the API call
-    // This is just a placeholder callback
+    console.log('📝 Sign up initiated for:', values.email);
   };
 
-  // MongoDB signin (no Firebase)
+  // MongoDB signin
   const handleEmailSignIn = async (values: SignInValues) => {
-    // SignIn component handles the API call and sets auth
+    // SignIn component handles the API call and token storage
+    console.log('🔐 Sign in initiated for:', values.email);
     setIsAuthenticated(true);
   };
 
-  // Google authentication (Firebase + MongoDB sync)
+  // Google authentication with Firebase + MongoDB sync
   const handleGoogleAuth = async () => {
     try {
+      console.log('🔵 Starting Google authentication...');
+
+      // Open Firebase Google Sign-in popup
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      
 
-      // Use the base URL from your env
-      const API_BASE = import.meta.env.VITE_API_URL;
+      console.log('✅ Firebase auth successful:', user.email);
 
-      const response = await fetch(`${API_BASE}/auth/signup`, { // Removed extra '/api' here
+      // Sync with MongoDB backend
+      console.log('📡 Syncing with backend...');
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,18 +80,37 @@ function App() {
           firebaseUid: user.uid
         })
       });
-      
+
       const data = await response.json();
-      
+      console.log('📥 Backend response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to sync with backend');
+      }
+
       if (data.token) {
         localStorage.setItem('authToken', data.token);
+        console.log('✅ Google authentication complete');
         setIsAuthenticated(true);
+      } else {
+        throw new Error('No token received from backend');
       }
-    } catch (error) {
-      console.error('Google auth error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Google auth error:', error);
+
+      // Provide user-friendly error messages
+      if (error.code === 'auth/popup-blocked') {
+        throw new Error('Pop-up was blocked. Please allow pop-ups for this site.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // User opened multiple popups, ignore this error
+        return;
+      } else {
+        throw new Error(error.message || 'Google sign-in failed. Please try again.');
+      }
     }
-};
+  };
 
   const handleSetActiveSection = (section: string) => {
     console.log("Switching to:", section);
@@ -90,9 +118,11 @@ function App() {
   };
 
   const handleLogout = () => {
+    console.log('👋 Logging out...');
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setActiveSection("home");
+    setAuthPage("signin");
   };
 
   const renderActiveSection = () => {
@@ -121,10 +151,24 @@ function App() {
         return <GovernmentBenefits />;
       case "wallet":
         return <WalletDashboard />;
+      case "fraud-monitor":
+        return <FraudAlertsDashboard />;
       default:
         return <Hero setActiveSection={handleSetActiveSection} />;
     }
   };
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return authPage === "signup" ? (

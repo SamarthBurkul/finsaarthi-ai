@@ -1,6 +1,8 @@
 const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
 const { generateTxHash, verifyTxHash, generateAuditLog } = require("../helpers/generateTxHash");
+const { scoreTransaction } = require('../utils/fraud');
+const Alert = require('../models/Alert');
 
 function parseAmount(value) {
   const n = Number(value);
@@ -169,7 +171,98 @@ exports.createTransaction = async (req, res) => {
       console.log('✅ Step 11b PASSED: Wallet debited. New balance:', updatedWallet.balance);
     }
 
-    // Create transaction record with hash
+    // ============================================
+    // FRAUD DETECTION (Step 11.5)
+    // ============================================
+    console.log('🔍 Step 11.5: Running fraud detection...');
+    
+    let riskScore = 0;
+    let fraudReasons = [];
+    let fraudDetails = {};
+    
+    try {
+      // Get recent transactions for frequency analysis (last 24 hours)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const recentTransactions = await Transaction.find({
+        userId,
+        occurredAt: { $gte: twentyFourHoursAgo },
+        status: 'completed'
+      })
+        .sort({ occurredAt: -1 })
+        .limit(50)
+        .lean();
+
+      // Optional: Get user profile from User model (if you have avgDailySpending, etc.)
+      // const user = await User.findById(userId);
+      // const userProfile = {
+      //   avgDailySpending: user.avgDailySpending || 5000,
+      //   homeCountry: user.homeCountry || 'IN',
+      //   trustedMerchants: user.trustedMerchants || []
+      // };
+
+      // For now, use default profile
+      const userProfile = {
+        avgDailySpending: 5000, // Default, or fetch from user settings
+        homeCountry: 'IN',
+        trustedMerchants: []
+      };
+
+      // Score the transaction
+      const fraudResult = await scoreTransaction({
+        transaction: {
+          userId,
+          amount: amt,
+          type,
+          category: category || 'general',
+          merchant: metadata?.merchant,
+          location: metadata?.location,
+          occurredAt: txOccurredAt
+        },
+        wallet: updatedWallet,
+        recentTransactions,
+        userProfile
+      });
+
+      riskScore = fraudResult.riskScore;
+      fraudReasons = fraudResult.reasons;
+      fraudDetails = fraudResult.details;
+
+      console.log('✅ Step 11.5 PASSED: Risk score:', riskScore);
+      console.log('📊 Fraud reasons:', fraudReasons.map(r => r.code).join(', '));
+
+      // Optional: Block extremely high-risk transactions
+      // Uncomment below to enable auto-blocking
+      /*
+      if (riskScore >= 90) {
+        console.log('🚨 BLOCKING: Risk score too high');
+        
+        // Rollback wallet balance
+        const rollbackInc = type === "credit" ? -amt : amt;
+        await Wallet.updateOne(
+          { _id: wallet._id, userId }, 
+          { $inc: { balance: rollbackInc } }
+        );
+        
+        return res.status(400).json({ 
+          success: false,
+          error: "Transaction blocked",
+          message: "This transaction has been flagged as high-risk and blocked for your security.",
+          riskScore,
+          reasons: fraudReasons
+        });
+      }
+      */
+
+    } catch (fraudError) {
+      // Don't block transaction if fraud detection fails - just log it
+      console.error('⚠️ Step 11.5 WARNING: Fraud detection failed (non-critical):', fraudError.message);
+      console.error('⚠️ Stack:', fraudError.stack);
+      // Continue with transaction creation
+    }
+
+    // ============================================
+    // CREATE TRANSACTION RECORD (Step 12)
+    // ============================================
     console.log('✅ Step 12: Creating transaction record...');
     try {
       const txData = {
@@ -182,30 +275,81 @@ exports.createTransaction = async (req, res) => {
         description: description || "",
         category: category || "general",
         status: status || "completed",
-        metadata: metadata || {},
+        metadata: {
+          ...(metadata || {}),
+          // Add fraud data to metadata
+          fraud: {
+            riskScore,
+            reasons: fraudReasons,
+            flagged: riskScore >= 50, // Flag threshold from FRAUD_CONFIG
+            analyzedAt: new Date()
+          }
+        },
         occurredAt: txOccurredAt
       };
-      console.log('📝 Step 12a: Transaction data:', txData);
+      console.log('📝 Step 12a: Transaction data prepared');
       
       const tx = await Transaction.create(txData);
-      console.log('✅ Step 12 PASSED: Transaction created:', { _id: tx._id, txHash: tx.txHash, amount: tx.amount });
+      console.log('✅ Step 12 PASSED: Transaction created:', { 
+        _id: tx._id, 
+        txHash: tx.txHash, 
+        riskScore 
+      });
+
+      // ============================================
+      // CREATE ALERT IF HIGH RISK (Step 12.5)
+      // ============================================
+      if (riskScore >= 50) {
+        console.log('🚨 Step 12.5: Creating fraud alert...');
+        try {
+          const alertMessage = fraudReasons.length > 0
+            ? `High-risk transaction detected: ${fraudReasons.map(r => r.message).join('; ')}`
+            : `High-risk transaction detected with score ${riskScore}`;
+            
+          await Alert.create({
+            userId,
+            transactionId: tx._id,
+            type: 'fraud',
+            severity: riskScore >= 75 ? 'high' : 'medium',
+            message: alertMessage,
+            metadata: {
+              riskScore,
+              reasons: fraudReasons,
+              transactionAmount: amt,
+              transactionType: type,
+              transactionCategory: category || 'general'
+            }
+          });
+          console.log('✅ Step 12.5 PASSED: Alert created');
+        } catch (alertError) {
+          console.error('⚠️ Step 12.5 WARNING: Alert creation failed (non-critical):', alertError.message);
+        }
+      }
 
       // Log audit trail
       console.log('✅ Step 13: Creating audit log...');
       try {
         const auditLog = generateAuditLog(tx, 'created');
-        console.log('📝 Step 13 PASSED: Transaction audit log:', auditLog);
+        console.log('📝 Step 13 PASSED: Transaction audit log created');
       } catch (auditErr) {
         console.warn('⚠️ Step 13 WARNING: Audit log failed (non-critical):', auditErr.message);
       }
 
       console.log('🎉 ===== TRANSACTION CREATED SUCCESSFULLY =====');
+      
+      // Return success response with fraud data
       return res.status(201).json({ 
         success: true,
         transaction: tx, 
         wallet: updatedWallet,
+        fraud: {
+          riskScore,
+          flagged: riskScore >= 50,
+          reasons: fraudReasons
+        },
         message: `Transaction successful. ${type === 'credit' ? 'Added' : 'Deducted'} ${amt} ${tx.currency}`
       });
+      
     } catch (txErr) {
       // CRITICAL: Rollback wallet balance if transaction creation fails
       console.error('❌ Step 12 FAILED: Transaction creation failed, initiating rollback:', txErr);

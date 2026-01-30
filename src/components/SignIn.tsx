@@ -1,13 +1,10 @@
-// src/pages/SignIn.tsx
+// src/components/SignIn.tsx
 import React, { useState } from "react";
 import { AuthPageProps, SignInValues } from "../types/auth";
-// ✅ file is in the same folder (components)
 import { fintechColors as c } from "./fintechTheme";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-  
+
+// Use consistent API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-
 
 const SignIn: React.FC<AuthPageProps> = ({
   onEmailSignIn,
@@ -52,8 +49,11 @@ const SignIn: React.FC<AuthPageProps> = ({
 
     try {
       setIsSubmitting(true);
+      setError(null);
 
-      // 🔥 BACKEND CALL (MongoDB authentication)
+      console.log('🔐 Attempting sign in to:', `${API_BASE_URL}/auth/signin`);
+
+      // Call backend signin endpoint
       const res = await fetch(`${API_BASE_URL}/auth/signin`, {
         method: "POST",
         headers: {
@@ -66,22 +66,27 @@ const SignIn: React.FC<AuthPageProps> = ({
       });
 
       const data = await res.json();
-      localStorage.setItem("token", data.token);
+      console.log('📥 Sign in response:', data);
 
       if (!res.ok) {
-        throw new Error(data.error || "Invalid credentials");
+        throw new Error(data.error || data.message || "Invalid credentials");
+      }
+
+      // Check if token exists
+      if (!data.token) {
+        throw new Error("No authentication token received");
       }
 
       // ✅ Save JWT token
       localStorage.setItem("authToken", data.token);
-      
-      console.log("User signed in:", data.user);
+      console.log("✅ User signed in successfully:", data.user);
 
       // ✅ Call onEmailSignIn to set isAuthenticated in App.tsx
       if (onEmailSignIn) {
         await onEmailSignIn(values);
       }
     } catch (err: any) {
+      console.error('❌ Sign in error:', err);
       setError(err?.message || "Unable to sign in. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -92,8 +97,10 @@ const SignIn: React.FC<AuthPageProps> = ({
     if (!onGoogleAuth) return;
     try {
       setIsSubmitting(true);
+      setError(null);
       await onGoogleAuth();
     } catch (err: any) {
+      console.error('❌ Google sign-in error:', err);
       setError(err?.message || "Google sign-in failed. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -166,7 +173,7 @@ const SignIn: React.FC<AuthPageProps> = ({
                 color: c.textSecondary,
               }}
             >
-               FinSaarthi
+              FinSaarthi
             </span>
           </div>
           <h1
@@ -225,7 +232,8 @@ const SignIn: React.FC<AuthPageProps> = ({
             alignItems: "center",
             justifyContent: "center",
             gap: "0.5rem",
-            cursor: "pointer",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: isSubmitting ? 0.6 : 1,
             marginBottom: "1rem",
           }}
         >
@@ -290,7 +298,7 @@ const SignIn: React.FC<AuthPageProps> = ({
                 color: c.textSecondary,
               }}
             >
-              Work email
+              Email
             </label>
             <input
               id="email"
@@ -299,6 +307,7 @@ const SignIn: React.FC<AuthPageProps> = ({
               value={values.email}
               onChange={handleChange("email")}
               placeholder="you@company.com"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -308,6 +317,7 @@ const SignIn: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -328,13 +338,15 @@ const SignIn: React.FC<AuthPageProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
+                disabled={isSubmitting}
                 style={{
                   background: "transparent",
                   border: "none",
                   color: c.accent,
                   fontSize: 11,
-                  cursor: "pointer",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
                   padding: 0,
+                  opacity: isSubmitting ? 0.6 : 1,
                 }}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -347,6 +359,7 @@ const SignIn: React.FC<AuthPageProps> = ({
               value={values.password}
               onChange={handleChange("password")}
               placeholder="••••••••"
+              disabled={isSubmitting}
               style={{
                 width: "100%",
                 padding: "0.55rem 0.75rem",
@@ -356,6 +369,7 @@ const SignIn: React.FC<AuthPageProps> = ({
                 color: c.textPrimary,
                 fontSize: 13,
                 outline: "none",
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             />
           </div>
@@ -379,23 +393,26 @@ const SignIn: React.FC<AuthPageProps> = ({
             >
               <input
                 type="checkbox"
+                disabled={isSubmitting}
                 style={{
                   accentColor: c.accent,
                   width: 12,
                   height: 12,
                 }}
               />
-              Keep me signed in on this device
+              Keep me signed in
             </label>
             <button
               type="button"
+              disabled={isSubmitting}
               style={{
                 background: "transparent",
                 border: "none",
                 color: "#a855f7",
                 fontSize: 11,
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
                 padding: 0,
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             >
               Forgot password?
@@ -415,7 +432,8 @@ const SignIn: React.FC<AuthPageProps> = ({
               color: "#020617",
               fontSize: 14,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+              opacity: isSubmitting ? 0.7 : 1,
               marginBottom: "0.85rem",
             }}
           >
@@ -430,18 +448,20 @@ const SignIn: React.FC<AuthPageProps> = ({
               margin: 0,
             }}
           >
-            New to Fintech Secure?{" "}
+            New to FinSaarthi?{" "}
             <button
               type="button"
               onClick={() => onNavigateTo?.("signup")}
+              disabled={isSubmitting}
               style={{
                 color: "#c4b5fd",
                 textDecoration: "none",
                 fontWeight: 500,
                 background: "transparent",
                 border: "none",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
                 padding: 0,
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             >
               Create an account

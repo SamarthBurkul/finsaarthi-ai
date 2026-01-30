@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronDown,
   Wallet,
+  AlertTriangle,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -58,6 +59,7 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
     { id: "smart-savings", label: "Smart Savings", icon: PiggyBank },
     { id: "investment-comparator", label: "InvestCompare", icon: BarChart3 },
     { id: "bank-locator", label: "Find Banks", icon: MapPin },
+    { id: "fraud-monitor", label: "Fraud Monitor", icon: AlertTriangle },
   ];
 
   const aiToolsGroup = [
@@ -79,11 +81,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-600 ${
-        isScrolled
-          ? "bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-2xl backdrop-blur-xl bg-opacity-95"
-          : "bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-600 ${isScrolled
+        ? "bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-2xl backdrop-blur-xl bg-opacity-95"
+        : "bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900"
+        }`}
     >
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-20">
@@ -109,11 +110,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 relative group ${
-                    activeSection === item.id
-                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
-                      : "text-gray-300 hover:text-white hover:bg-white/10"
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 relative group ${activeSection === item.id
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
+                    : "text-gray-300 hover:text-white hover:bg-white/10"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="font-medium">{item.label}</span>
@@ -131,11 +131,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               onMouseLeave={() => setOpenMegaMenu(null)}
             >
               <button
-                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${
-                  toolsGroup.some((item) => activeSection === item.id)
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${toolsGroup.some((item) => activeSection === item.id)
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
+                  }`}
               >
                 <Calculator className="w-4 h-4" />
                 <span className="font-medium">Tools</span>
@@ -149,11 +148,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
                       <button
                         key={item.id}
                         onClick={() => handleNavClick(item.id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${
-                          activeSection === item.id
-                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
-                            : "text-gray-300 hover:text-white hover:bg-white/5"
-                        }`}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${activeSection === item.id
+                          ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                          }`}
                       >
                         <Icon className="w-5 h-5" />
                         <span className="font-medium">{item.label}</span>
@@ -171,11 +169,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               onMouseLeave={() => setOpenMegaMenu(null)}
             >
               <button
-                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${
-                  aiToolsGroup.some((item) => activeSection === item.id)
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${aiToolsGroup.some((item) => activeSection === item.id)
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
+                  }`}
               >
                 <Brain className="w-4 h-4" />
                 <span className="font-medium">AI Tools</span>
@@ -189,11 +186,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
                       <button
                         key={item.id}
                         onClick={() => handleNavClick(item.id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${
-                          activeSection === item.id
-                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
-                            : "text-gray-300 hover:text-white hover:bg-white/5"
-                        }`}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${activeSection === item.id
+                          ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                          }`}
                       >
                         <Icon className="w-5 h-5" />
                         <span className="font-medium">{item.label}</span>
@@ -211,11 +207,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               onMouseLeave={() => setOpenMegaMenu(null)}
             >
               <button
-                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${
-                  learnGroup.some((item) => activeSection === item.id)
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 ${learnGroup.some((item) => activeSection === item.id)
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
+                  }`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span className="font-medium">Learn</span>
@@ -229,11 +224,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
                       <button
                         key={item.id}
                         onClick={() => handleNavClick(item.id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${
-                          activeSection === item.id
-                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
-                            : "text-gray-300 hover:text-white hover:bg-white/5"
-                        }`}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 mb-2 last:mb-0 ${activeSection === item.id
+                          ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                          }`}
                       >
                         <Icon className="w-5 h-5" />
                         <span className="font-medium">{item.label}</span>
@@ -247,10 +241,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              
+
               className="flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-600 text-gray-300 hover:text-white hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50"
-             
-              
+
+
             >
               <LogOut className="w-4 h-4" />
               <span className="font-medium">Logout</span>
@@ -276,11 +270,10 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
                   <button
                     key={item.id}
                     onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 ${
-                      activeSection === item.id
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
-                        : "text-gray-300 hover:text-white hover:bg-white/10"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 ${activeSection === item.id
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
@@ -290,8 +283,8 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-600 text-red-400 hover:text-red-300 hover:bg-red-500/20 border border-red-500/30"
-               
-                
+
+
               >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
