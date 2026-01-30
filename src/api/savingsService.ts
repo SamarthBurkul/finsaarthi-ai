@@ -1,9 +1,10 @@
-// Savings API Service
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Helper function to get auth token
+import { authFetch } from '../utils/authFetch'; // Import your utility// Savings API Service
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';// Helper function to get auth token
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token');
+  // Use 'authToken' to match your App.tsx and authFetch.ts
+  return localStorage.getItem('authToken'); 
 };
 
 // Helper function to create auth headers
@@ -23,7 +24,6 @@ const handleResponse = async (response: Response) => {
   }
   return response.json();
 };
-
 // ==================== SAVINGS STATE API ====================
 
 /**
@@ -188,11 +188,25 @@ const getAIAnalysis = async () => {
 // Export all services
 export const savingsService = {
   // State
-  getState,
-  updateState,
-  
+ getState: async () => {
+    const response = await authFetch(`${API_BASE_URL}/savings/state`);
+    return handleResponse(response);
+  },
+
+  updateState: async (data: { dailyGoal?: number; selectedGoal?: string; goalPrice?: number; }) => {
+    const response = await authFetch(`${API_BASE_URL}/savings/state`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    return handleResponse(response);
+  },  
   // Daily saving
-  saveToday,
+  saveToday: async () => {
+    const response = await authFetch(`${API_BASE_URL}/savings/save-today`, {
+      method: 'POST'
+    });
+    return handleResponse(response);
+  },
   
   // Logs
   getLogs,
@@ -201,16 +215,39 @@ export const savingsService = {
   getProjections,
   
   // Goals
-  getAllGoals,
-  createGoal,
+ getAllGoals: async () => {
+    const response = await authFetch(`${API_BASE_URL}/savings/goals`);
+    return handleResponse(response);
+  },
+  
+ createGoal: async (data: { goalName: string; targetAmount: number; targetDate?: string; }) => {
+    const response = await authFetch(`${API_BASE_URL}/savings/goals`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return handleResponse(response);
+  },
+
   updateGoal,
-  deleteGoal,
+
+  deleteGoal: async (goalId: string) => {
+    const response = await authFetch(`${API_BASE_URL}/savings/goals/${goalId}`, {
+      method: 'DELETE'
+    });
+    return handleResponse(response);
+  },
   
   // Dashboard
-  getDashboardSummary,
+ getDashboardSummary: async () => {
+    const response = await authFetch(`${API_BASE_URL}/savings/dashboard`);
+    return handleResponse(response);
+  },
   
   // AI Analysis
-  getAIAnalysis
+ getAIAnalysis: async () => {
+    const response = await authFetch(`${API_BASE_URL}/savings/ai-analysis`);
+    return handleResponse(response);
+  }
 };
 
 export default savingsService;
