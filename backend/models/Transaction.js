@@ -112,18 +112,16 @@ transactionSchema.index({ userId: 1, type: 1, occurredAt: -1 });
 transactionSchema.index({ walletId: 1, occurredAt: -1 });
 
 // Pre-save validation
-transactionSchema.pre('save', function(next) {
+transactionSchema.pre('save', async function() {
   // Ensure txHash is present and cannot be changed
   if (!this.txHash) {
-    return next(new Error('Transaction hash is required'));
+    throw new Error('Transaction hash is required');
   }
   
   // Ensure occurredAt is not in the future
   if (this.occurredAt > new Date()) {
-    return next(new Error('Transaction date cannot be in the future'));
+    throw new Error('Transaction date cannot be in the future');
   }
-  
-  next();
 });
 
 // Instance method to verify transaction integrity

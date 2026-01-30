@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-require("dotenv").config();
-
-const express = require("express");
-const cors = require("cors");
-=======
 // index.js
 require('dotenv').config();
 const express = require('express');
@@ -126,7 +120,6 @@ connectDB()
     console.error('❌ Failed to connect to MongoDB:', err);
     process.exit(1);
   });
->>>>>>> 83e71685da1a350e93201aa233b2fa10ae7fe1c2
 
 // graceful shutdown
 process.on('SIGTERM', () => {
@@ -138,18 +131,4 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-<<<<<<< HEAD
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-=======
 module.exports = app;
->>>>>>> 83e71685da1a350e93201aa233b2fa10ae7fe1c2
