@@ -16,6 +16,7 @@ import {
   FileText,
   LogOut,
   ChevronDown,
+  Wallet,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -49,6 +50,7 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
   const mainNavItems = [
     { id: "home", label: "Home", icon: Shield },
     { id: "ai-chat", label: "AI Chat", icon: Brain },
+    { id: "wallet", label: "Wallet", icon: Wallet },
   ];
 
   const toolsGroup = [

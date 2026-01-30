@@ -7,9 +7,14 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-// 1. Your Secure CORS Configuration
+// 1. CORS Configuration
+// NOTE: Your frontend dev server can run on different ports (e.g. 5173/5174).
+// This allows any localhost origin in non-production, while keeping an allowlist for production.
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
   "https://finsaarthi-frontend.vercel.app",
   "https://finsaarthiai-fbgiir2m-samarth-burkuls-projects.vercel.app"
 ];
@@ -17,15 +22,26 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow non-browser clients
       if (!origin) return callback(null, true);
+
+      // In dev, allow any localhost port (prevents frequent CORS breaks when Vite chooses 5174, 5175, etc.)
+      if (process.env.NODE_ENV !== "production") {
+        if (/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+          return callback(null, true);
+        }
+      }
+
       if (allowedOrigins.indexOf(origin) === -1) {
         return callback(new Error("CORS policy blocked this origin"), false);
       }
+
       return callback(null, true);
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
     credentials: true,
+    optionsSuccessStatus: 204
   })
 );
 

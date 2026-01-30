@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Wallet = require('../models/Wallet');
 const authMiddleware = require('../middleware/auth'); // ✅ Changed from 'auth' to 'authMiddleware'
 
 const router = express.Router();
@@ -15,14 +16,31 @@ router.post('/signup', async (req, res) => {
       let user = await User.findOne({ firebaseUid });
 
       if (!user) {
+        const safeFullName = fullName || (email ? email.split('@')[0] : 'User');
+
         user = new User({
-          fullName,
+          fullName: safeFullName,
           email,
           firebaseUid,
           authProvider: 'firebase'
         });
         await user.save();
       }
+
+      // Ensure wallet exists for this user
+      await Wallet.updateOne(
+        { userId: user._id },
+        {
+          $setOnInsert: {
+            userId: user._id,
+            name: 'Primary Wallet',
+            currency: 'INR',
+            balance: 0,
+            status: 'active'
+          }
+        },
+        { upsert: true }
+      );
 
       const token = jwt.sign(
         { userId: user._id, email: user.email },
@@ -60,6 +78,21 @@ router.post('/signup', async (req, res) => {
 
     await user.save();
 
+    // Ensure wallet exists for this user
+    await Wallet.updateOne(
+      { userId: user._id },
+      {
+        $setOnInsert: {
+          userId: user._id,
+          name: 'Primary Wallet',
+          currency: 'INR',
+          balance: 0,
+          status: 'active'
+        }
+      },
+      { upsert: true }
+    );
+
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
@@ -93,14 +126,31 @@ router.post('/signin', async (req, res) => {
 
       // If user doesn't exist, create them
       if (!user) {
+        const safeFullName = fullName || (email ? email.split('@')[0] : 'User');
+
         user = new User({
-          fullName: fullName || email.split('@')[0],
+          fullName: safeFullName,
           email,
           firebaseUid,
           authProvider: 'firebase'
         });
         await user.save();
       }
+
+      // Ensure wallet exists for this user
+      await Wallet.updateOne(
+        { userId: user._id },
+        {
+          $setOnInsert: {
+            userId: user._id,
+            name: 'Primary Wallet',
+            currency: 'INR',
+            balance: 0,
+            status: 'active'
+          }
+        },
+        { upsert: true }
+      );
 
       // Generate JWT
       const token = jwt.sign(

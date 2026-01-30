@@ -14,6 +14,7 @@ import AIFinanceBot from "./components/AIFinanceBot";
 import StockMentorAI from "./components/StockMentorAI";
 import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
 import GovernmentBenefits from "./components/GovernmentBenefits";
+import WalletDashboard from "./components/WalletDashboard";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
@@ -24,7 +25,6 @@ import {
   SignUpValues,
 } from "./types/auth";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -119,6 +119,8 @@ function App() {
         return <SmartBudgetAI />;
       case "government-benefits":
         return <GovernmentBenefits />;
+      case "wallet":
+        return <WalletDashboard />;
       default:
         return <Hero setActiveSection={handleSetActiveSection} />;
     }

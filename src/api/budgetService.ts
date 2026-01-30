@@ -1,6 +1,6 @@
 // src/api/budgetService.ts
 import { authFetch } from "../utils/authFetch";
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export async function analyzeBudget(payload: {
   monthlyIncome: number;
@@ -9,7 +9,7 @@ export async function analyzeBudget(payload: {
   month?: number;
   year?: number;
 }) {
-  const res = await authFetch(`${API_URL}/api/budget/analyze`, {
+  const res = await authFetch(`${API_BASE_URL}/budget/analyze`, {
     method: "POST",
     body: JSON.stringify(payload)
   });

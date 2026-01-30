@@ -4,8 +4,10 @@ exports.getWallet = async (req, res) => {
   try {
     const wallet = await Wallet.findOne({ userId: req.userId });
 
+    // Avoid noisy 404s in the frontend when a user simply hasn't created a wallet yet.
+    // Clients can treat `wallet: null` as "not created".
     if (!wallet) {
-      return res.status(404).json({ error: "Wallet not found" });
+      return res.json({ wallet: null });
     }
 
     return res.json({ wallet });
@@ -19,29 +21,34 @@ exports.createWallet = async (req, res) => {
   try {
     const { name, currency, initialBalance } = req.body || {};
 
-    const existing = await Wallet.findOne({ userId: req.userId });
-    if (existing) {
-      return res.status(409).json({ error: "Wallet already exists" });
-    }
-
     const balance = initialBalance === undefined ? 0 : Number(initialBalance);
     if (!Number.isFinite(balance) || balance < 0) {
       return res.status(400).json({ error: "initialBalance must be a non-negative number" });
     }
 
-    const wallet = await Wallet.create({
+    // Atomic upsert to avoid duplicate-key races and eliminate noisy 409s.
+    // One wallet per user.
+    const upsertPayload = {
       userId: req.userId,
       name: name || "Primary Wallet",
       currency: (currency || "INR").toUpperCase(),
       balance
-    });
+    };
 
-    return res.status(201).json({ wallet });
+    const wallet = await Wallet.findOneAndUpdate(
+      { userId: req.userId },
+      { $setOnInsert: upsertPayload },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    );
+
+    // We intentionally return 200 for both "created" and "already existed" to keep the client simple.
+    return res.status(200).json({ wallet });
   } catch (error) {
-    if (error?.code === 11000) {
-      return res.status(409).json({ error: "Wallet already exists" });
-    }
-
     console.error("createWallet:", error);
     return res.status(500).json({ error: "Server error creating wallet" });
   }
