@@ -203,10 +203,10 @@ const FinancialEducation: React.FC = () => {
   const renderLessons = () => (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+        <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
           Financial <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">Learning Hub</span>
         </h2>
-        <p className="text-white font-inter">Master financial concepts through interactive lessons and quizzes</p>
+        <p className="text-white font-ubuntu">Master financial concepts through interactive lessons and quizzes</p>
         
         <div className="flex justify-center space-x-4 mt-6">
           <button 
@@ -245,8 +245,8 @@ const FinancialEducation: React.FC = () => {
       <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-xl font-semibold text-soft-white font-inter">Your Progress</h3>
-            <p className="text-white font-inter">Level: {getCurrentLevel().name}</p>
+            <h3 className="text-xl font-semibold text-soft-white font-ubuntu">Your Progress</h3>
+            <p className="text-white font-ubuntu">Level: {getCurrentLevel().name}</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-emerald-400">{userProgress.totalPoints}</div>
@@ -306,8 +306,8 @@ const FinancialEducation: React.FC = () => {
                 )}
               </div>
               
-              <h3 className="text-lg font-semibold text-soft-white mb-2 font-inter">{lesson.title}</h3>
-              <p className="text-sm text-white font-inter">{lesson.description}</p>
+              <h3 className="text-lg font-semibold text-soft-white mb-2 font-ubuntu">{lesson.title}</h3>
+              <p className="text-sm text-white font-ubuntu">{lesson.description}</p>
               
               <div className="mt-3 flex flex-wrap gap-1">
                 {lesson.keyPoints.slice(0, 3).map((point, index) => (
@@ -328,7 +328,7 @@ const FinancialEducation: React.FC = () => {
 
       <div className="grid md:grid-cols-2 gap-6 mt-8">
         <div className="bg-charcoal-gray rounded-2xl p-6 border border-slate-gray/20">
-          <h3 className="text-xl font-semibold text-soft-white mb-4 flex items-center font-inter">
+          <h3 className="text-xl font-semibold text-soft-white mb-4 flex items-center font-ubuntu">
             <Award className="w-5 h-5 mr-2 text-teal-400" />
             Your Badges
           </h3>
@@ -350,7 +350,7 @@ const FinancialEducation: React.FC = () => {
         </div>
 
         <div className="bg-charcoal-gray rounded-2xl p-6 border border-slate-gray/20">
-          <h3 className="text-xl font-semibold text-soft-white mb-4 flex items-center font-inter">
+          <h3 className="text-xl font-semibold text-soft-white mb-4 flex items-center font-ubuntu">
             <TrendingUp className="w-5 h-5 mr-2 text-blue-400" />
             Quick Stats
           </h3>
@@ -383,13 +383,13 @@ const FinancialEducation: React.FC = () => {
       </button>
 
       <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-        <h2 className="text-3xl font-playfair font-bold text-soft-white mb-4">{selectedLesson?.title}</h2>
+        <h2 className="text-3xl font-ubuntu font-bold text-soft-white mb-4">{selectedLesson?.title}</h2>
         
         <div className="mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-lg border border-emerald-500/20">
-          <h3 className="font-semibold text-emerald-400 mb-2 font-inter">Key Learning Points:</h3>
+          <h3 className="font-semibold text-emerald-400 mb-2 font-ubuntu">Key Learning Points:</h3>
           <ul className="space-y-1">
             {selectedLesson?.keyPoints.map((point: string, index: number) => (
-              <li key={index} className="flex items-center space-x-2 text-soft-white font-inter">
+              <li key={index} className="flex items-center space-x-2 text-soft-white font-ubuntu">
                 <Target className="w-4 h-4 text-teal-400" />
                 <span>{point}</span>
               </li>
@@ -409,7 +409,7 @@ const FinancialEducation: React.FC = () => {
         ) : (
           <div className="prose prose-invert max-w-none mb-6">
             <div className="bg-jet-black/50 p-6 rounded-lg border border-emerald-500/20">
-              <p className="text-soft-white font-inter leading-relaxed whitespace-pre-wrap">{lessonContent}</p>
+              <p className="text-soft-white font-ubuntu leading-relaxed whitespace-pre-wrap">{lessonContent}</p>
             </div>
           </div>
         )}
@@ -457,7 +457,7 @@ const FinancialEducation: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-playfair font-bold text-soft-white">
+            <h2 className="text-2xl font-ubuntu font-bold text-soft-white">
               {activeView === 'test' ? 'Unit Test' : 'Mini Quiz'}
             </h2>
             <div className="text-right">
@@ -467,13 +467,13 @@ const FinancialEducation: React.FC = () => {
           </div>
 
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-soft-white mb-4 font-inter">{question.question}</h3>
+            <h3 className="text-xl font-semibold text-soft-white mb-4 font-ubuntu">{question.question}</h3>
             <div className="space-y-3">
               {question.options.map((option: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 font-inter ${
+                  className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 font-ubuntu ${
                     selectedAnswer === index
                       ? 'border-emerald-400 bg-emerald-500/10 text-emerald-400'
                       : 'border-gray-600 text-soft-white hover:border-emerald-400/50 hover:bg-emerald-500/5'
@@ -524,10 +524,10 @@ const FinancialEducation: React.FC = () => {
         <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20 text-center">
           <div className="mb-6">
             <div className="text-6xl mb-4">{getResultIcon()}</div>
-            <h2 className="text-3xl font-playfair font-bold text-soft-white mb-2">
+            <h2 className="text-3xl font-ubuntu font-bold text-soft-white mb-2">
               {quizResult.isTest ? 'Unit Test' : 'Mini Quiz'} Complete!
             </h2>
-            <p className={`text-lg font-inter text-${getResultColor()}`}>
+            <p className={`text-lg font-ubuntu text-${getResultColor()}`}>
               {getResultMessage()}
             </p>
           </div>
@@ -621,7 +621,7 @@ const FinancialEducation: React.FC = () => {
             
             <div className="space-y-8">
               <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-                <h2 className="text-3xl font-playfair font-bold text-soft-white mb-6 text-center">Banking 101 - Complete Guide</h2>
+                <h2 className="text-3xl font-ubuntu font-bold text-soft-white mb-6 text-center">Banking 101 - Complete Guide</h2>
                 
                 {/* What is Banking */}
                 <div className="mb-8">

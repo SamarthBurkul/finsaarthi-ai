@@ -1,24 +1,26 @@
-import { initializeApp, getApps } from "firebase/app";
+// firebase.ts
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-// Firebase config - Replace with your actual values from Firebase Console
+// Firebase config from Vite env variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAJhlKFihWkXXgSA5O169IvNJw_ra1WCeg",
-  authDomain: "finsaarthi-89698.firebaseapp.com",
-  projectId: "finsaarthi-89698",
-  storageBucket: "finsaarthi-89698.firebasestorage.app",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: "finsaarthi-89698.appspot.com",
   messagingSenderId: "609023109118",
-  appId: "1:609023109118:web:ca0c394c4dacb0fadf42af"
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase (only if not already initialized)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Initialize Firebase app (avoid re-initializing in Vite HMR)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Auth & Google provider
+// Auth + Google provider
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Set additional Google provider settings (optional)
 googleProvider.setCustomParameters({
   prompt: "select_account",
 });
+
+export default app;

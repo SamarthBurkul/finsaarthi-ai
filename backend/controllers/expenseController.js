@@ -1,21 +1,58 @@
 // backend/controllers/expenseController.js
 const Expense = require("../models/Expense");
+const Alert = require("../models/Alert");
+const { computeFraudRisk } = require("../utils/fraud");
 
 exports.createExpense = async (req, res) => {
   try {
     const userId = req.userId;
     const { amount, category, purpose, paymentMethod, date } = req.body;
 
+    // Fetch recent transactions for fraud check
+    const recentTransactions = await Expense.find({ userId })
+      .sort({ expenseDate: -1 })
+      .limit(10);
+
+    // Run fraud detection engine
+    const fraudAnalysis = computeFraudRisk(
+      {
+        amount,
+        category,
+        date: date ? new Date(date) : new Date(),
+      },
+      recentTransactions
+    );
+
+    // Create expense with fraud data
     const expense = await Expense.create({
       userId,
       amount,
       category,
       purpose,
       paymentMethod: paymentMethod || "UPI",
-      expenseDate: date ? new Date(date) : new Date()
+      expenseDate: date ? new Date(date) : new Date(),
+      riskScore: fraudAnalysis.riskScore,
+      fraudReasons: fraudAnalysis.reasons,
+      isFlagged: fraudAnalysis.flagged,
     });
 
-    return res.status(201).json(expense);
+    // If flagged, create alert entry
+    if (fraudAnalysis.flagged) {
+      await Alert.create({
+        userId,
+        transactionId: expense._id,
+        riskScore: fraudAnalysis.riskScore,
+        reasons: fraudAnalysis.reasons,
+        status: "new",
+      });
+    }
+
+    return res.status(201).json({
+      ...expense.toObject(),
+      riskScore: fraudAnalysis.riskScore,
+      fraudReasons: fraudAnalysis.reasons,
+      flagged: fraudAnalysis.flagged,
+    });
   } catch (err) {
     console.error("createExpense:", err);
     return res.status(500).json({ message: "Server error creating expense" });
@@ -69,5 +106,94 @@ exports.deleteExpense = async (req, res) => {
   } catch (err) {
     console.error("deleteExpense:", err);
     return res.status(500).json({ message: "Server error deleting expense" });
+  }
+};
+// Get all fraud alerts for user
+exports.getAlerts = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { status } = req.query;
+
+    let query = { userId };
+    if (status) query.status = status;
+
+    const alerts = await Alert.find(query)
+      .sort({ createdAt: -1 })
+      .populate("transactionId", "amount category purpose expenseDate");
+
+    return res.json({ alerts });
+  } catch (err) {
+    console.error("getAlerts:", err);
+    return res.status(500).json({ message: "Server error fetching alerts" });
+  }
+};
+
+// Get flagged transactions
+exports.getFlaggedTransactions = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const flaggedExpenses = await Expense.find({
+      userId,
+      isFlagged: true,
+    }).sort({ expenseDate: -1 });
+
+    return res.json({ flaggedExpenses });
+  } catch (err) {
+    console.error("getFlaggedTransactions:", err);
+    return res
+      .status(500)
+      .json({ message: "Server error fetching flagged transactions" });
+  }
+};
+
+// Acknowledge alert
+exports.acknowledgeAlert = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { alertId } = req.params;
+
+    const alert = await Alert.findOneAndUpdate(
+      { _id: alertId, userId },
+      { status: "acknowledged" },
+      { new: true }
+    );
+
+    if (!alert) {
+      return res.status(404).json({ message: "Alert not found" });
+    }
+
+    return res.json({ alert });
+  } catch (err) {
+    console.error("acknowledgeAlert:", err);
+    return res.status(500).json({ message: "Server error acknowledging alert" });
+  }
+};
+
+// Resolve alert
+exports.resolveAlert = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { alertId } = req.params;
+    const { userResponse } = req.body;
+
+    const alert = await Alert.findOneAndUpdate(
+      { _id: alertId, userId },
+      {
+        status: "resolved",
+        userResponse,
+        resolvedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!alert) {
+      return res.status(404).json({ message: "Alert not found" });
+    }
+
+    return res.json({ alert });
+  } catch (err) {
+    console.error("resolveAlert:", err);
+    return res.status(500).json({ message: "Server error resolving alert" });
   }
 };

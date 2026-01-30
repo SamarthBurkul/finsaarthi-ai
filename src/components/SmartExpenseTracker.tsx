@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, TrendingDown, TrendingUp, Calendar, PieChart, Brain, Target, AlertTriangle, DollarSign, Download, Lightbulb, BarChart3 } from 'lucide-react';
+import { Plus, TrendingDown, TrendingUp, Calendar, PieChart, Brain, Target, AlertTriangle, DollarSign, Download, Lightbulb, BarChart3, CheckCircle } from 'lucide-react';
 import { getDeepAIAnalysis } from '../utils/groqApi';
 import { sampleExpenses, expenseCategories, savingTips } from '../data/expenseData';
 
@@ -11,6 +11,9 @@ interface Expense {
   date: string;
   time: string;
   paymentMethod: string;
+  riskScore?: number;
+  fraudReasons?: string[];
+  isFlagged?: boolean;
 }
 
 interface CategoryData {
@@ -27,6 +30,8 @@ const SmartExpenseTracker: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [aiInsights, setAiInsights] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [lastFraudAnalysis, setLastFraudAnalysis] = useState<any>(null);
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
 
   const [newExpense, setNewExpense] = useState({
     amount: '',
@@ -47,22 +52,79 @@ const SmartExpenseTracker: React.FC = () => {
     }
   }, [expenses]);
 
-  const addExpense = () => {
+  const addExpense = async () => {
     if (!newExpense.amount || !newExpense.category || !newExpense.purpose) return;
 
-    const expense: Expense = {
-      id: Date.now().toString(),
-      amount: parseFloat(newExpense.amount),
-      category: newExpense.category,
-      purpose: newExpense.purpose,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('en-IN', { hour12: true }),
-      paymentMethod: newExpense.paymentMethod
-    };
+    setIsAddingExpense(true);
+    
+    try {
+      // Try to get fraud analysis from backend
+      const amount = parseFloat(newExpense.amount);
+      const category = newExpense.category;
+      const date = new Date();
+      
+      // Simple local fraud detection (mirroring backend logic)
+      let riskScore = 0;
+      const fraudReasons: string[] = [];
+      
+      // Rule 1: Large Amount (>₹50,000)
+      if (amount > 50000) {
+        riskScore += 60;
+        fraudReasons.push(`Large transaction amount: ₹${amount} (threshold: ₹50000)`);
+      }
+      
+      // Rule 2: Suspicious Category
+      if (['crypto', 'gambling', 'unknown'].includes(category.toLowerCase())) {
+        riskScore += 20;
+        fraudReasons.push(`Suspicious category detected: ${category}`);
+      }
+      
+      // Rule 4: Very Large Amount (>₹1,00,000)
+      if (amount > 100000) {
+        riskScore += 15;
+        fraudReasons.push(`Very large amount: ₹${amount} (>₹100000)`);
+      }
+      
+      // Rule 5: Unusual Time (11 PM - 5 AM)
+      const hour = date.getHours();
+      if (hour < 5 || hour > 23) {
+        riskScore += 10;
+        fraudReasons.push(`Transaction at unusual time: ${hour}:00 (late night/early morning)`);
+      }
+      
+      // Cap score at 100
+      riskScore = Math.min(riskScore, 100);
+      const isFlagged = riskScore > 70;
+      
+      const expense: Expense = {
+        id: Date.now().toString(),
+        amount: amount,
+        category: category,
+        purpose: newExpense.purpose,
+        date: date.toISOString().split('T')[0],
+        time: date.toLocaleTimeString('en-IN', { hour12: true }),
+        paymentMethod: newExpense.paymentMethod,
+        riskScore,
+        fraudReasons,
+        isFlagged
+      };
 
-    setExpenses(prev => [expense, ...prev]);
-    setNewExpense({ amount: '', category: '', purpose: '', paymentMethod: 'UPI' });
-    setShowAddExpense(false);
+      setExpenses(prev => [expense, ...prev]);
+      setLastFraudAnalysis({
+        riskScore,
+        fraudReasons,
+        isFlagged,
+        amount,
+        category
+      });
+      
+      setNewExpense({ amount: '', category: '', purpose: '', paymentMethod: 'UPI' });
+      // Keep modal open to show fraud analysis
+    } catch (error) {
+      console.error('Error adding expense:', error);
+    } finally {
+      setIsAddingExpense(false);
+    }
   };
 
   const getFilteredExpenses = () => {
@@ -397,10 +459,10 @@ const SmartExpenseTracker: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart Expense <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 bg-clip-text text-transparent">Tracker</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             Track every payment, understand your spending, and save smarter with AI insights
           </p>
         </div>
@@ -508,6 +570,11 @@ const SmartExpenseTracker: React.FC = () => {
               ) : (
                 getFilteredExpenses().slice(0, 10).map(expense => {
                   const category = expenseCategories.find(cat => cat.name === expense.category);
+                  const riskColor = !expense.riskScore ? 'text-green-400' : 
+                                   expense.riskScore <= 30 ? 'text-green-400' : 
+                                   expense.riskScore <= 70 ? 'text-yellow-400' : 
+                                   'text-red-500';
+                  
                   return (
                     <div key={expense.id} className="flex items-center justify-between p-4 bg-jet-black rounded-lg hover:bg-slate-gray/10 transition-colors">
                       <div className="flex items-center gap-3">
@@ -588,8 +655,104 @@ const SmartExpenseTracker: React.FC = () => {
         {/* Add Expense Modal */}
         {showAddExpense && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-charcoal-gray rounded-2xl p-8 w-full max-w-2xl border border-slate-gray/20">
+            <div className="bg-charcoal-gray rounded-2xl p-8 w-full max-w-2xl border border-slate-gray/20 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold text-soft-white mb-6 text-center">💰 Add New Expense</h2>
+              
+              {/* Fraud Analysis Display */}
+              {lastFraudAnalysis && (
+                <div className={`mb-8 rounded-xl p-6 border-2 ${
+                  lastFraudAnalysis.isFlagged 
+                    ? 'bg-red-500/10 border-red-500' 
+                    : lastFraudAnalysis.riskScore > 30
+                    ? 'bg-yellow-500/10 border-yellow-500'
+                    : 'bg-green-500/10 border-green-500'
+                }`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    {lastFraudAnalysis.isFlagged ? (
+                      <>
+                        <AlertTriangle className="w-6 h-6 text-red-500" />
+                        <h3 className="text-xl font-bold text-red-500">🚨 FRAUD ALERT - FLAGGED</h3>
+                      </>
+                    ) : lastFraudAnalysis.riskScore > 30 ? (
+                      <>
+                        <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                        <h3 className="text-xl font-bold text-yellow-500">⚠️ WARNING - Moderate Risk</h3>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                        <h3 className="text-xl font-bold text-green-500">✓ SAFE - Low Risk</h3>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-black/40 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-soft-white font-semibold">Risk Score</span>
+                        <span className={`text-2xl font-bold ${
+                          lastFraudAnalysis.riskScore <= 30 ? 'text-green-400' :
+                          lastFraudAnalysis.riskScore <= 70 ? 'text-yellow-400' :
+                          'text-red-500'
+                        }`}>
+                          {lastFraudAnalysis.riskScore}/100
+                        </span>
+                      </div>
+                      
+                      {/* Risk Bar */}
+                      <div className="w-full bg-black/60 rounded-full h-3 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            lastFraudAnalysis.riskScore <= 30 ? 'bg-green-500' :
+                            lastFraudAnalysis.riskScore <= 70 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${lastFraudAnalysis.riskScore}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Transaction Details */}
+                    <div className="bg-black/40 rounded-lg p-4">
+                      <p className="text-soft-white font-semibold mb-3">Transaction Details:</p>
+                      <div className="space-y-2 text-sm">
+                        <p className="text-white">💰 Amount: <span className="font-bold text-red-400">₹{lastFraudAnalysis.amount}</span></p>
+                        <p className="text-white">🏷️ Category: <span className="font-bold">{lastFraudAnalysis.category}</span></p>
+                        <p className="text-white">🕐 Time: <span className="font-bold">{new Date().toLocaleTimeString('en-IN', { hour12: true })}</span></p>
+                      </div>
+                    </div>
+                    
+              {/* Fraud Reasons */}
+              {lastFraudAnalysis.fraudReasons && lastFraudAnalysis.fraudReasons.length > 0 && (
+                <div className="bg-black/40 rounded-lg p-4">
+                  <p className="text-soft-white font-semibold mb-3">🚨 Risk Factors Detected:</p>
+                  <ul className="space-y-2 text-sm text-white">
+                      {lastFraudAnalysis.fraudReasons.map((reason: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-red-400 mt-1">•</span>
+                          <span>{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                    
+                    {/* Recommendations */}
+                    <div className="bg-black/40 rounded-lg p-4">
+                      <p className="text-soft-white font-semibold mb-3">💡 Recommendation:</p>
+                      <p className="text-sm text-white">
+                        {lastFraudAnalysis.isFlagged 
+                          ? "This transaction has been flagged due to multiple risk factors. Please review it carefully. You should verify this expense is legitimate before confirming."
+                          : lastFraudAnalysis.riskScore > 30
+                          ? "This transaction shows some unusual characteristics. Proceed with caution and verify the details are correct."
+                          : "This transaction appears normal. No fraud indicators detected."
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
@@ -657,18 +820,23 @@ const SmartExpenseTracker: React.FC = () => {
 
               <div className="flex gap-3 mt-8">
                 <button
-                  onClick={() => setShowAddExpense(false)}
+                  onClick={() => {
+                    setShowAddExpense(false);
+                    setLastFraudAnalysis(null);
+                  }}
                   className="flex-1 px-6 py-3 bg-jet-black border border-slate-gray/30 text-soft-white rounded-lg hover:bg-slate-gray/10 transition-colors"
                 >
-                  Cancel
+                  {lastFraudAnalysis ? 'Close' : 'Cancel'}
                 </button>
-                <button
-                  onClick={addExpense}
-                  disabled={!newExpense.amount || !newExpense.category || !newExpense.purpose}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
-                >
-                  💰 Add Expense
-                </button>
+                {!lastFraudAnalysis && (
+                  <button
+                    onClick={addExpense}
+                    disabled={!newExpense.amount || !newExpense.category || !newExpense.purpose || isAddingExpense}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {isAddingExpense ? '⏳ Analyzing...' : '💰 Add Expense'}
+                  </button>
+                )}
               </div>
             </div>
           </div>

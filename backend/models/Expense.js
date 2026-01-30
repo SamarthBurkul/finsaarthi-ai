@@ -46,6 +46,24 @@ const expenseSchema = new mongoose.Schema(
     expenseDate: {
       type: Date,
       default: Date.now
+    },
+
+    riskScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+
+    fraudReasons: {
+      type: [String],
+      default: [],
+    },
+
+    isFlagged: {
+      type: Boolean,
+      default: false,
+      index: true,
     }
   },
   {

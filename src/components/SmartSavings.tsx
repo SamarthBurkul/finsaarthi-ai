@@ -252,10 +252,10 @@ const SmartSavings: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart <span className="bg-gradient-to-r from-green-400 via-lime-400 to-emerald-400 bg-clip-text text-transparent">Savings</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter mb-4">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu mb-4">
             Build wealth one day at a time with AI-powered habit tracking
           </p>
           <p className="text-blue-400 font-semibold">
@@ -267,7 +267,7 @@ const SmartSavings: React.FC = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Daily Goal Selection */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <Target className="w-6 h-6 mr-2 text-emerald-400" />
                 Daily Saving Goal
               </h3>
@@ -302,7 +302,7 @@ const SmartSavings: React.FC = () => {
                     }}
                     onBlur={(e) => handleCustomAmount(e.target.value)}
                     disabled={activePreset !== null}
-                    className={`w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter transition-opacity ${
+                    className={`w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu transition-opacity ${
                       activePreset !== null ? 'opacity-40 cursor-not-allowed' : ''
                     }`}
                   />
@@ -332,7 +332,7 @@ const SmartSavings: React.FC = () => {
 
             {/* Digital Piggy Bank */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <PiggyBank className="w-6 h-6 mr-2 text-emerald-400" />
                 Your Digital Piggy Bank
               </h3>
@@ -385,7 +385,7 @@ const SmartSavings: React.FC = () => {
 
             {/* Goal Attachment */}
             <div className="bg-charcoal-gray rounded-2xl p-8 border border-slate-gray/20">
-              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-inter">
+              <h3 className="text-xl font-semibold mb-6 text-soft-white flex items-center font-ubuntu">
                 <Award className="w-6 h-6 mr-2 text-emerald-400" />
                 Life Goals
               </h3>
@@ -402,7 +402,7 @@ const SmartSavings: React.FC = () => {
                       setSelectedGoal(goalName);
                     }
                   }}
-                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-inter"
+                  className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white focus:border-emerald-400 focus:outline-none font-ubuntu"
                 >
                   <option value="">Select a goal</option>
                   {allGoals.map((goal, index) => (
@@ -424,7 +424,7 @@ const SmartSavings: React.FC = () => {
                         updateSelectedGoal('custom', parseInt(e.target.value));
                       }
                     }}
-                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-inter"
+                    className="w-full bg-jet-black border border-slate-gray/30 rounded-xl px-4 py-3 text-soft-white placeholder-slate-gray focus:border-emerald-400 focus:outline-none font-ubuntu"
                   />
                 )}
 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import Spline from "@splinetool/react-spline";
+
 import {
   Calculator,
   BookOpen,
@@ -118,58 +120,81 @@ const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        <div className="container mx-auto max-w-6xl text-center">
-          <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-full border border-teal-500/30 mb-6 animate-fadeIn">
-            <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
-            <span className="text-sm text-teal-300 font-medium">AI-Powered Finance Platform</span>
+        <div className="container mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+          {/* Left: Robot */}
+          <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
+            <div className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] rounded-3xl overflow-hidden  bg- via-slate-900 backdrop-blur-xl "> 
+              <Spline scene="https://prod.spline.design/Mz8zC6sWiyLXB0B2/scene.splinecode" />
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-teal-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-fadeIn" style={{ animationDelay: "0.2s" }}>
-            Smart Finance,
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              Smarter Future
-            </span>
-          </h1>
+          {/* Right: Text content */}
+          <div className="w-full lg:w-1/2 text-center lg:text-left">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-full border border-teal-500/30 mb-6 animate-fadeIn">
+              <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
+              <span className="text-sm text-teal-300 font-medium">AI-Powered Finance Platform</span>
+            </div>
 
-          <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed animate-fadeIn" style={{ animationDelay: "0.4s" }}>
-            Your AI-powered financial companion helping you manage money, savings, investments, and security with intelligent insights and personalized guidance.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeIn" style={{ animationDelay: "0.6s" }}>
-            <button
-              onClick={() => setActiveSection("ai-chat")}
-              className="group px-8 py-4 bg-gradient-to-r from-teal-500 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-teal-500/40 hover:shadow-xl hover:shadow-teal-500/60 transition-all duration-300 hover:scale-105 flex items-center space-x-2"
+            <h1
+              className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-teal-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-fadeIn"
+              style={{ animationDelay: "0.2s" }}
             >
-              <span>Get Started</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => setActiveSection("calculators")}
-              className="px-8 py-4 bg-white/5 backdrop-blur-lg text-white rounded-xl font-semibold border border-white/10 hover:bg-white/15 transition-all duration-300 hover:scale-105"
-            >
-              Explore Tools
-            </button>
-          </div>
+              Smart Finance,
+              <br />
+              <span className="bg-gradient-to-r from-blue-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                Smarter Future
+              </span>
+            </h1>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto animate-fadeIn" style={{ animationDelay: "0.8s" }}>
-            {[
-              { label: "AI Tools", value: "10+" },
-              { label: "Calculators", value: "15+" },
-              { label: "Users", value: "50K+" },
-              { label: "Accuracy", value: "99%" },
-            ].map((stat, idx) => (
-              <div
-                key={idx}
-                className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-teal-500/50 transition-all duration-300 hover:scale-105"
+            <p
+              className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto lg:mx-0 mb-8 leading-relaxed animate-fadeIn"
+              style={{ animationDelay: "0.4s" }}
+            >
+              Your AI-powered financial companion helping you manage money, savings, investments, and security with intelligent insights
+              and personalized guidance.
+            </p>
+
+            <div
+              className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 animate-fadeIn"
+              style={{ animationDelay: "0.6s" }}
+            >
+              <button
+                onClick={() => setActiveSection("ai-chat")}
+                className="group px-8 py-4 bg-gradient-to-r from-teal-500 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-teal-500/40 hover:shadow-xl hover:shadow-teal-500/60 transition-all duration-300 hover:scale-105 flex items-center space-x-2"
               >
-                <div className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent">
-                  {stat.value}
+                <span>Get Started</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                onClick={() => setActiveSection("calculators")}
+                className="px-8 py-4 bg-white/5 backdrop-blur-lg text-white rounded-xl font-semibold border border-white/10 hover:bg-white/15 transition-all duration-300 hover:scale-105"
+              >
+                Explore Tools
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto lg:mx-0 animate-fadeIn"
+              style={{ animationDelay: "0.8s" }}
+            >
+              {[
+                { label: "AI Tools", value: "10+" },
+                { label: "Calculators", value: "15+" },
+                { label: "Users", value: "50K+" },
+                { label: "Accuracy", value: "99%" },
+              ].map((stat, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-teal-500/50 transition-all duration-300 hover:scale-105"
+                >
+                  <div className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
                 </div>
-                <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>

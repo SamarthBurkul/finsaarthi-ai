@@ -234,10 +234,10 @@ const SmartInvestmentComparator: React.FC = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-soft-white mb-4">
+          <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
             Smart Investment <span className="bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">Comparator</span>
           </h2>
-          <p className="text-lg text-white max-w-2xl mx-auto font-inter">
+          <p className="text-lg text-white max-w-2xl mx-auto font-ubuntu">
             AI-powered comparison of Gold, Fixed Deposits, and Mutual Funds based on your profile
           </p>
         </div>
