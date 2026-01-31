@@ -396,7 +396,7 @@ const SmartInvestmentComparator: React.FC = () => {
 
                 {/* 7️⃣ Investment Frequency */}
                 <div>
-                  <label className="block text-soft-white font-medium mb-2 flex items-center">
+                  <label className="flex items-center text-soft-white font-medium mb-2">
                     <span className="bg-emerald-500 text-white w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">7</span>
                     Investment Frequency *
                   </label>

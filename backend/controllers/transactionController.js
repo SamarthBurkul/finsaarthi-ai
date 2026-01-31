@@ -2,6 +2,7 @@ const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
 const { generateTxHash, verifyTxHash, generateAuditLog } = require("../helpers/generateTxHash");
 const { scoreTransaction } = require('../utils/fraud');
+const { analyzePolicies } = require('../utils/policyEngine');
 const Alert = require('../models/Alert');
 
 function parseAmount(value) {
@@ -261,6 +262,32 @@ exports.createTransaction = async (req, res) => {
     }
 
     // ============================================
+    // POLICY ANALYSIS (Step 11.6) - NEW
+    // ============================================
+    let policyInfo = null;
+    console.log('📋 Step 11.6: Analyzing policies...');
+    try {
+      policyInfo = analyzePolicies(
+        {
+          amount: amt,
+          category: category || 'general',
+          type
+        },
+        {
+          riskScore,
+          reasons: fraudReasons
+        }
+      );
+      console.log('✅ Step 11.6 PASSED: Policy analysis complete');
+      console.log('📋 Refund eligible:', policyInfo.refundPolicy.eligible);
+      console.log('📋 Legal notices:', policyInfo.legalNotices.length);
+      console.log('📋 Consultations:', policyInfo.consultations.length);
+    } catch (policyError) {
+      console.error('⚠️ Step 11.6 WARNING: Policy analysis failed (non-critical):', policyError.message);
+      // Continue with transaction creation
+    }
+
+    // ============================================
     // CREATE TRANSACTION RECORD (Step 12)
     // ============================================
     console.log('✅ Step 12: Creating transaction record...');
@@ -283,7 +310,9 @@ exports.createTransaction = async (req, res) => {
             reasons: fraudReasons,
             flagged: riskScore >= 50, // Flag threshold from FRAUD_CONFIG
             analyzedAt: new Date()
-          }
+          },
+          // Add policy data to metadata
+          policy: policyInfo || {}
         },
         occurredAt: txOccurredAt
       };
@@ -337,7 +366,7 @@ exports.createTransaction = async (req, res) => {
 
       console.log('🎉 ===== TRANSACTION CREATED SUCCESSFULLY =====');
       
-      // Return success response with fraud data
+      // Return success response with fraud data and policy info
       return res.status(201).json({ 
         success: true,
         transaction: tx, 
@@ -347,6 +376,7 @@ exports.createTransaction = async (req, res) => {
           flagged: riskScore >= 50,
           reasons: fraudReasons
         },
+        policy: policyInfo || {},
         message: `Transaction successful. ${type === 'credit' ? 'Added' : 'Deducted'} ${amt} ${tx.currency}`
       });
       
@@ -402,7 +432,7 @@ exports.getTransactions = async (req, res) => {
 
     const { walletId, type, status, category, from, to, limit = 50, skip = 0 } = req.query || {};
 
-    const query = { userId };
+    const query = { userId, isReversed: { $ne: true } }; // Exclude reversed transactions
     if (walletId) query.walletId = walletId;
     if (type) query.type = type;
     if (status) query.status = status;

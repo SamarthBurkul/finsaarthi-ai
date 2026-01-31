@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, TrendingDown, TrendingUp, Calendar, PieChart, Brain, Target, AlertTriangle, DollarSign, Download, Lightbulb, BarChart3, CheckCircle } from 'lucide-react';
 import { getDeepAIAnalysis } from '../utils/groqApi';
-import { sampleExpenses, expenseCategories, savingTips } from '../data/expenseData';
+import { expenseCategories, savingTips } from '../data/expenseData';
+import * as expenseService from '../api/expenseService';
 
 interface Expense {
   id: string;
@@ -32,6 +33,8 @@ const SmartExpenseTracker: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastFraudAnalysis, setLastFraudAnalysis] = useState<any>(null);
   const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newExpense, setNewExpense] = useState({
     amount: '',
@@ -40,11 +43,44 @@ const SmartExpenseTracker: React.FC = () => {
     paymentMethod: 'UPI'
   });
 
+  // Fetch expenses from backend
+  const loadExpenses = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await expenseService.getExpenses({ 
+        period: viewMode,
+        date: selectedDate 
+      });
+      
+      if (result.expenses) {
+        // Transform backend data to match frontend interface
+        const transformedExpenses = result.expenses.map((exp: any) => {
+          const expenseDate = exp.expenseDate ? new Date(exp.expenseDate) : new Date();
+          return {
+            id: exp._id,
+            amount: exp.amount,
+            category: exp.category,
+            purpose: exp.purpose,
+            date: expenseDate.toISOString().split('T')[0],
+            time: expenseDate.toLocaleTimeString('en-IN', { hour12: true }),
+            paymentMethod: exp.paymentMethod || 'UPI'
+          };
+        });
+        setExpenses(transformedExpenses);
+      }
+    } catch (err: any) {
+      console.error('Error loading expenses:', err);
+      setError(err?.message || 'Failed to load expenses');
+      setExpenses([]); // Clear expenses on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Force load sample data for demo
-    setExpenses(sampleExpenses);
-    localStorage.setItem('kanima-expenses', JSON.stringify(sampleExpenses));
-  }, []);
+    loadExpenses();
+  }, [viewMode, selectedDate]);
 
   useEffect(() => {
     if (expenses.length > 0) {
@@ -53,75 +89,60 @@ const SmartExpenseTracker: React.FC = () => {
   }, [expenses]);
 
   const addExpense = async () => {
-    if (!newExpense.amount || !newExpense.category || !newExpense.purpose) return;
+    if (!newExpense.amount || !newExpense.category || !newExpense.purpose) {
+      alert('Please fill in all required fields: amount, category, and purpose');
+      return;
+    }
 
     setIsAddingExpense(true);
+    setError(null);
     
     try {
-      // Try to get fraud analysis from backend
       const amount = parseFloat(newExpense.amount);
-      const category = newExpense.category;
-      const date = new Date();
       
-      // Simple local fraud detection (mirroring backend logic)
-      let riskScore = 0;
-      const fraudReasons: string[] = [];
-      
-      // Rule 1: Large Amount (>₹50,000)
-      if (amount > 50000) {
-        riskScore += 60;
-        fraudReasons.push(`Large transaction amount: ₹${amount} (threshold: ₹50000)`);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount greater than 0');
+        setIsAddingExpense(false);
+        return;
       }
       
-      // Rule 2: Suspicious Category
-      if (['crypto', 'gambling', 'unknown'].includes(category.toLowerCase())) {
-        riskScore += 20;
-        fraudReasons.push(`Suspicious category detected: ${category}`);
-      }
-      
-      // Rule 4: Very Large Amount (>₹1,00,000)
-      if (amount > 100000) {
-        riskScore += 15;
-        fraudReasons.push(`Very large amount: ₹${amount} (>₹100000)`);
-      }
-      
-      // Rule 5: Unusual Time (11 PM - 5 AM)
-      const hour = date.getHours();
-      if (hour < 5 || hour > 23) {
-        riskScore += 10;
-        fraudReasons.push(`Transaction at unusual time: ${hour}:00 (late night/early morning)`);
-      }
-      
-      // Cap score at 100
-      riskScore = Math.min(riskScore, 100);
-      const isFlagged = riskScore > 70;
-      
-      const expense: Expense = {
-        id: Date.now().toString(),
-        amount: amount,
-        category: category,
-        purpose: newExpense.purpose,
-        date: date.toISOString().split('T')[0],
-        time: date.toLocaleTimeString('en-IN', { hour12: true }),
-        paymentMethod: newExpense.paymentMethod,
-        riskScore,
-        fraudReasons,
-        isFlagged
-      };
-
-      setExpenses(prev => [expense, ...prev]);
-      setLastFraudAnalysis({
-        riskScore,
-        fraudReasons,
-        isFlagged,
+      // Call backend API to create expense
+      const result = await expenseService.createExpense({
         amount,
-        category
+        category: newExpense.category,
+        purpose: newExpense.purpose,
+        paymentMethod: newExpense.paymentMethod,
+        date: new Date().toISOString()
       });
       
+      console.log('Expense created:', result);
+
+      // Transform and add to local state
+      const expenseDate = result.expenseDate ? new Date(result.expenseDate) : new Date();
+      const newExp: Expense = {
+        id: result._id,
+        amount: result.amount,
+        category: result.category,
+        purpose: result.purpose,
+        date: expenseDate.toISOString().split('T')[0],
+        time: expenseDate.toLocaleTimeString('en-IN', { hour12: true }),
+        paymentMethod: result.paymentMethod || 'UPI'
+      };
+
+      setExpenses(prev => [newExp, ...prev]);
+      
       setNewExpense({ amount: '', category: '', purpose: '', paymentMethod: 'UPI' });
-      // Keep modal open to show fraud analysis
-    } catch (error) {
+      setShowAddExpense(false);
+      
+      // Reload to get fresh data
+      await loadExpenses();
+      
+      alert('✅ Expense added successfully!');
+    } catch (error: any) {
       console.error('Error adding expense:', error);
+      const errorMessage = error?.message || 'Failed to add expense. Please check your connection and try again.';
+      setError(errorMessage);
+      alert(`❌ Error: ${errorMessage}`);
     } finally {
       setIsAddingExpense(false);
     }
@@ -467,6 +488,26 @@ const SmartExpenseTracker: React.FC = () => {
           </p>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-red-400">
+              <AlertTriangle className="w-5 h-5" />
+              <p className="font-semibold">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading expenses...</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Quick Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
@@ -619,18 +660,120 @@ const SmartExpenseTracker: React.FC = () => {
 
         {/* AI Insights */}
         {aiInsights && (
-          <div className="mt-8 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-8 border border-purple-500/20">
-            <div className="flex items-start gap-4">
-              <Brain className="w-8 h-8 text-purple-400 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="text-2xl font-bold text-soft-white mb-4">AI-Powered Financial Insights</h3>
-                <div className="text-white leading-relaxed space-y-3">
-                  {aiInsights.split('. ').map((sentence, index) => (
-                    <p key={index} className="text-white">{sentence.trim()}{sentence.includes('.') ? '' : '.'}</p>
-                  ))}
+          <div className="mt-8 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10 rounded-2xl p-8 border border-purple-500/20 backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <Brain className="w-8 h-8 text-purple-400" />
+              <h3 className="text-2xl font-bold text-soft-white">AI Financial Insights</h3>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Overview Section */}
+              <div className="bg-jet-black/50 rounded-xl p-5 border border-purple-500/10">
+                <div className="flex items-center gap-2 mb-3">
+                  <BarChart3 className="w-5 h-5 text-purple-400" />
+                  <h4 className="font-bold text-soft-white">📊 Overview</h4>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {(() => {
+                    const filtered = getFilteredExpenses();
+                    const total = filtered.reduce((sum, exp) => sum + exp.amount, 0);
+                    const avg = filtered.length > 0 ? total / filtered.length : 0;
+                    const topCat = getCategoryData()[0];
+                    return (
+                      <>
+                        <p className="text-white">• <span className="text-soft-white font-semibold">Total Spent:</span> ₹{total.toLocaleString()}</p>
+                        <p className="text-white">• <span className="text-soft-white font-semibold">Transactions:</span> {filtered.length}</p>
+                        <p className="text-white">• <span className="text-soft-white font-semibold">Average:</span> ₹{Math.round(avg).toLocaleString()}</p>
+                        {topCat && <p className="text-white">• <span className="text-soft-white font-semibold">Top Category:</span> {topCat.name} ({topCat.percentage.toFixed(0)}%)</p>}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Spending Pattern */}
+              <div className="bg-jet-black/50 rounded-xl p-5 border border-pink-500/10">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-5 h-5 text-pink-400" />
+                  <h4 className="font-bold text-soft-white">📈 Spending Pattern</h4>
+                </div>
+                <div className="space-y-2 text-sm text-white">
+                  {(() => {
+                    const topCat = getCategoryData()[0];
+                    if (!topCat) return <p>No spending data yet.</p>;
+                    
+                    if (topCat.percentage > 40) {
+                      return (
+                        <>
+                          <p>• <span className="text-yellow-400 font-semibold">{topCat.name}</span> dominates your expenses</p>
+                          <p>• Consider diversifying spending across categories</p>
+                          <p>• Set category-specific budget limits</p>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <p>• Balanced spending across categories</p>
+                          <p>• Top category: <span className="text-emerald-400 font-semibold">{topCat.name}</span></p>
+                          <p>• Good financial distribution</p>
+                        </>
+                      );
+                    }
+                  })()}
+                </div>
+              </div>
+
+              {/* Savings Opportunities */}
+              <div className="bg-jet-black/50 rounded-xl p-5 border border-emerald-500/10">
+                <div className="flex items-center gap-2 mb-3">
+                  <Target className="w-5 h-5 text-emerald-400" />
+                  <h4 className="font-bold text-soft-white">💡 Save Money</h4>
+                </div>
+                <div className="space-y-2 text-sm text-white">
+                  <p>• Track daily expenses consistently</p>
+                  <p>• Apply 50-30-20 budgeting rule</p>
+                  <p>• Reduce non-essential spending by 10%</p>
+                  <p>• Automate savings each month</p>
+                </div>
+              </div>
+
+              {/* Budget Optimization */}
+              <div className="bg-jet-black/50 rounded-xl p-5 border border-blue-500/10">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-blue-400" />
+                  <h4 className="font-bold text-soft-white">✅ Action Steps</h4>
+                </div>
+                <div className="space-y-2 text-sm text-white">
+                  <p>• Set monthly budget for each category</p>
+                  <p>• Build emergency fund (6 months expenses)</p>
+                  <p>• Review expenses weekly</p>
+                  <p>• Cut unnecessary subscriptions</p>
                 </div>
               </div>
             </div>
+
+            {/* Risk Alert if high spending */}
+            {(() => {
+              const filtered = getFilteredExpenses();
+              const total = filtered.reduce((sum, exp) => sum + exp.amount, 0);
+              const topCat = getCategoryData()[0];
+              
+              if (topCat && topCat.percentage > 50) {
+                return (
+                  <div className="mt-6 bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-400 font-semibold text-sm">⚠️ Overspending Risk Detected</p>
+                      <p className="text-red-300 text-xs mt-1">
+                        {topCat.name} category accounts for {topCat.percentage.toFixed(0)}% of your expenses. 
+                        Consider reducing spending in this category to maintain financial balance.
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         )}
 
@@ -657,102 +800,6 @@ const SmartExpenseTracker: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-charcoal-gray rounded-2xl p-8 w-full max-w-2xl border border-slate-gray/20 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold text-soft-white mb-6 text-center">💰 Add New Expense</h2>
-              
-              {/* Fraud Analysis Display */}
-              {lastFraudAnalysis && (
-                <div className={`mb-8 rounded-xl p-6 border-2 ${
-                  lastFraudAnalysis.isFlagged 
-                    ? 'bg-red-500/10 border-red-500' 
-                    : lastFraudAnalysis.riskScore > 30
-                    ? 'bg-yellow-500/10 border-yellow-500'
-                    : 'bg-green-500/10 border-green-500'
-                }`}>
-                  <div className="flex items-center gap-3 mb-3">
-                    {lastFraudAnalysis.isFlagged ? (
-                      <>
-                        <AlertTriangle className="w-6 h-6 text-red-500" />
-                        <h3 className="text-xl font-bold text-red-500">🚨 FRAUD ALERT - FLAGGED</h3>
-                      </>
-                    ) : lastFraudAnalysis.riskScore > 30 ? (
-                      <>
-                        <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                        <h3 className="text-xl font-bold text-yellow-500">⚠️ WARNING - Moderate Risk</h3>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-6 h-6 text-green-500" />
-                        <h3 className="text-xl font-bold text-green-500">✓ SAFE - Low Risk</h3>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="bg-black/40 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-soft-white font-semibold">Risk Score</span>
-                        <span className={`text-2xl font-bold ${
-                          lastFraudAnalysis.riskScore <= 30 ? 'text-green-400' :
-                          lastFraudAnalysis.riskScore <= 70 ? 'text-yellow-400' :
-                          'text-red-500'
-                        }`}>
-                          {lastFraudAnalysis.riskScore}/100
-                        </span>
-                      </div>
-                      
-                      {/* Risk Bar */}
-                      <div className="w-full bg-black/60 rounded-full h-3 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            lastFraudAnalysis.riskScore <= 30 ? 'bg-green-500' :
-                            lastFraudAnalysis.riskScore <= 70 ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }`}
-                          style={{ width: `${lastFraudAnalysis.riskScore}%` }}
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Transaction Details */}
-                    <div className="bg-black/40 rounded-lg p-4">
-                      <p className="text-soft-white font-semibold mb-3">Transaction Details:</p>
-                      <div className="space-y-2 text-sm">
-                        <p className="text-white">💰 Amount: <span className="font-bold text-red-400">₹{lastFraudAnalysis.amount}</span></p>
-                        <p className="text-white">🏷️ Category: <span className="font-bold">{lastFraudAnalysis.category}</span></p>
-                        <p className="text-white">🕐 Time: <span className="font-bold">{new Date().toLocaleTimeString('en-IN', { hour12: true })}</span></p>
-                      </div>
-                    </div>
-                    
-              {/* Fraud Reasons */}
-              {lastFraudAnalysis.fraudReasons && lastFraudAnalysis.fraudReasons.length > 0 && (
-                <div className="bg-black/40 rounded-lg p-4">
-                  <p className="text-soft-white font-semibold mb-3">🚨 Risk Factors Detected:</p>
-                  <ul className="space-y-2 text-sm text-white">
-                      {lastFraudAnalysis.fraudReasons.map((reason: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                    
-                    {/* Recommendations */}
-                    <div className="bg-black/40 rounded-lg p-4">
-                      <p className="text-soft-white font-semibold mb-3">💡 Recommendation:</p>
-                      <p className="text-sm text-white">
-                        {lastFraudAnalysis.isFlagged 
-                          ? "This transaction has been flagged due to multiple risk factors. Please review it carefully. You should verify this expense is legitimate before confirming."
-                          : lastFraudAnalysis.riskScore > 30
-                          ? "This transaction shows some unusual characteristics. Proceed with caution and verify the details are correct."
-                          : "This transaction appears normal. No fraud indicators detected."
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
@@ -789,10 +836,10 @@ const SmartExpenseTracker: React.FC = () => {
                       className="w-full px-4 py-3 bg-jet-black border border-slate-gray/30 rounded-lg text-soft-white focus:border-emerald-400 focus:outline-none"
                     >
                       <option value="UPI">UPI</option>
-                      <option value="Credit Card">Credit Card</option>
-                      <option value="Debit Card">Debit Card</option>
-                      <option value="Net Banking">Net Banking</option>
+                      <option value="Card">Card</option>
                       <option value="Cash">Cash</option>
+                      <option value="Net Banking">Net Banking</option>
+                      <option value="Wallet">Wallet</option>
                     </select>
                   </div>
                 </div>
@@ -826,20 +873,20 @@ const SmartExpenseTracker: React.FC = () => {
                   }}
                   className="flex-1 px-6 py-3 bg-jet-black border border-slate-gray/30 text-soft-white rounded-lg hover:bg-slate-gray/10 transition-colors"
                 >
-                  {lastFraudAnalysis ? 'Close' : 'Cancel'}
+                  Cancel
                 </button>
-                {!lastFraudAnalysis && (
-                  <button
-                    onClick={addExpense}
-                    disabled={!newExpense.amount || !newExpense.category || !newExpense.purpose || isAddingExpense}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    {isAddingExpense ? '⏳ Analyzing...' : '💰 Add Expense'}
-                  </button>
-                )}
+                <button
+                  onClick={addExpense}
+                  disabled={!newExpense.amount || !newExpense.category || !newExpense.purpose || isAddingExpense}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {isAddingExpense ? '⏳ Adding...' : '💰 Add Expense'}
+                </button>
               </div>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </section>
