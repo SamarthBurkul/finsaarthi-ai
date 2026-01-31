@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, TrendingDown, TrendingUp, Calendar, PieChart, Brain, Target, AlertTriangle, DollarSign, Download, Lightbulb, BarChart3, CheckCircle } from 'lucide-react';
 import { getDeepAIAnalysis } from '../utils/groqApi';
 import { sampleExpenses, expenseCategories, savingTips } from '../data/expenseData';
+import { getExpenses, createExpense } from '../api/expenseService';
 
 interface Expense {
   id: string;
@@ -40,88 +41,110 @@ const SmartExpenseTracker: React.FC = () => {
     paymentMethod: 'UPI'
   });
 
-  useEffect(() => {
-    // Force load sample data for demo
-    setExpenses(sampleExpenses);
-    localStorage.setItem('kanima-expenses', JSON.stringify(sampleExpenses));
-  }, []);
+  // Track if we're showing real MongoDB data vs sample data
+  const [isUsingRealData, setIsUsingRealData] = useState(false);
+
+  // Extracted fetch function so we can call it after adding expense
+  const fetchExpensesFromDB = async () => {
+    try {
+      const data = await getExpenses({ period: viewMode, date: selectedDate });
+      if (data.expenses && data.expenses.length > 0) {
+        // Transform MongoDB format to component format
+        const formatted = data.expenses.map((exp: any) => {
+          // Safe date parsing with fallback
+          const expDate = exp.expenseDate ? new Date(exp.expenseDate) : new Date();
+          const isValidDate = !isNaN(expDate.getTime());
+          const safeDate = isValidDate ? expDate : new Date();
+
+          return {
+            id: exp._id,
+            amount: exp.amount,
+            category: exp.category,
+            purpose: exp.purpose,
+            date: safeDate.toISOString().split('T')[0],
+            time: safeDate.toLocaleTimeString('en-IN', { hour12: true }),
+            paymentMethod: exp.paymentMethod,
+            riskScore: exp.riskScore,
+            fraudReasons: exp.fraudReasons,
+            isFlagged: exp.isFlagged
+          };
+        });
+        setExpenses(formatted);
+        setIsUsingRealData(true);
+        return true;
+      } else {
+        // No expenses in DB - check if user is logged in
+        setExpenses(sampleExpenses);
+        setIsUsingRealData(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to fetch expenses, using sample data:', error);
+      // Fallback to sample data if not logged in or API fails
+      setExpenses(sampleExpenses);
+      setIsUsingRealData(false);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    if (expenses.length > 0) {
-      localStorage.setItem('kanima-expenses', JSON.stringify(expenses));
-    }
-  }, [expenses]);
+    fetchExpensesFromDB();
+  }, [viewMode, selectedDate]);
 
   const addExpense = async () => {
     if (!newExpense.amount || !newExpense.category || !newExpense.purpose) return;
 
     setIsAddingExpense(true);
-    
-    try {
-      // Try to get fraud analysis from backend
-      const amount = parseFloat(newExpense.amount);
-      const category = newExpense.category;
-      const date = new Date();
-      
-      // Simple local fraud detection (mirroring backend logic)
-      let riskScore = 0;
-      const fraudReasons: string[] = [];
-      
-      // Rule 1: Large Amount (>₹50,000)
-      if (amount > 50000) {
-        riskScore += 60;
-        fraudReasons.push(`Large transaction amount: ₹${amount} (threshold: ₹50000)`);
-      }
-      
-      // Rule 2: Suspicious Category
-      if (['crypto', 'gambling', 'unknown'].includes(category.toLowerCase())) {
-        riskScore += 20;
-        fraudReasons.push(`Suspicious category detected: ${category}`);
-      }
-      
-      // Rule 4: Very Large Amount (>₹1,00,000)
-      if (amount > 100000) {
-        riskScore += 15;
-        fraudReasons.push(`Very large amount: ₹${amount} (>₹100000)`);
-      }
-      
-      // Rule 5: Unusual Time (11 PM - 5 AM)
-      const hour = date.getHours();
-      if (hour < 5 || hour > 23) {
-        riskScore += 10;
-        fraudReasons.push(`Transaction at unusual time: ${hour}:00 (late night/early morning)`);
-      }
-      
-      // Cap score at 100
-      riskScore = Math.min(riskScore, 100);
-      const isFlagged = riskScore > 70;
-      
-      const expense: Expense = {
-        id: Date.now().toString(),
-        amount: amount,
-        category: category,
-        purpose: newExpense.purpose,
-        date: date.toISOString().split('T')[0],
-        time: date.toLocaleTimeString('en-IN', { hour12: true }),
-        paymentMethod: newExpense.paymentMethod,
-        riskScore,
-        fraudReasons,
-        isFlagged
-      };
 
-      setExpenses(prev => [expense, ...prev]);
-      setLastFraudAnalysis({
-        riskScore,
-        fraudReasons,
-        isFlagged,
-        amount,
-        category
+    try {
+      // Call backend API to create expense with fraud detection
+      const result = await createExpense({
+        amount: parseFloat(newExpense.amount),
+        category: newExpense.category,
+        purpose: newExpense.purpose,
+        paymentMethod: newExpense.paymentMethod,
       });
-      
+
+      // Show fraud analysis immediately
+      setLastFraudAnalysis({
+        riskScore: result.riskScore || 0,
+        fraudReasons: result.fraudReasons || [],
+        isFlagged: result.flagged || false,
+        amount: result.amount,
+        category: result.category
+      });
+
+      // Re-fetch ALL expenses from MongoDB to replace sample data with real data
+      await fetchExpensesFromDB();
+
       setNewExpense({ amount: '', category: '', purpose: '', paymentMethod: 'UPI' });
       // Keep modal open to show fraud analysis
     } catch (error) {
       console.error('Error adding expense:', error);
+      // Fallback: create expense locally if API fails
+      const amount = parseFloat(newExpense.amount);
+      const date = new Date();
+      const expense: Expense = {
+        id: Date.now().toString(),
+        amount: amount,
+        category: newExpense.category,
+        purpose: newExpense.purpose,
+        date: date.toISOString().split('T')[0],
+        time: date.toLocaleTimeString('en-IN', { hour12: true }),
+        paymentMethod: newExpense.paymentMethod,
+        riskScore: 0,
+        fraudReasons: [],
+        isFlagged: false
+      };
+      setExpenses(prev => [expense, ...prev]);
+      setLastFraudAnalysis({
+        riskScore: 0,
+        fraudReasons: ['Unable to analyze - saved locally'],
+        isFlagged: false,
+        amount: amount,
+        category: newExpense.category
+      });
+      setNewExpense({ amount: '', category: '', purpose: '', paymentMethod: 'UPI' });
     } finally {
       setIsAddingExpense(false);
     }
@@ -130,10 +153,10 @@ const SmartExpenseTracker: React.FC = () => {
   const getFilteredExpenses = () => {
     const today = new Date();
     const selected = new Date(selectedDate);
-    
+
     return expenses.filter(expense => {
       const expenseDate = new Date(expense.date);
-      
+
       switch (viewMode) {
         case 'daily':
           return expenseDate.toDateString() === selected.toDateString();
@@ -144,8 +167,8 @@ const SmartExpenseTracker: React.FC = () => {
           weekEnd.setDate(weekStart.getDate() + 6);
           return expenseDate >= weekStart && expenseDate <= weekEnd;
         case 'monthly':
-          return expenseDate.getMonth() === selected.getMonth() && 
-                 expenseDate.getFullYear() === selected.getFullYear();
+          return expenseDate.getMonth() === selected.getMonth() &&
+            expenseDate.getFullYear() === selected.getFullYear();
         default:
           return true;
       }
@@ -155,12 +178,12 @@ const SmartExpenseTracker: React.FC = () => {
   const getCategoryData = (): CategoryData[] => {
     const filtered = getFilteredExpenses();
     const total = filtered.reduce((sum, exp) => sum + exp.amount, 0);
-    
+
     const categoryTotals = expenseCategories.map(cat => {
       const amount = filtered
         .filter(exp => exp.category === cat.name)
         .reduce((sum, exp) => sum + exp.amount, 0);
-      
+
       return {
         name: cat.name,
         amount,
@@ -197,111 +220,111 @@ const SmartExpenseTracker: React.FC = () => {
   };
 
   const LineChartComponent = ({ data, title }: { data: any[]; title: string }) => {
-  // defensive defaults
-  if (!data || data.length === 0) {
+    // defensive defaults
+    if (!data || data.length === 0) {
+      return (
+        <div className="bg-jet-black rounded-xl p-6">
+          <h4 className="text-lg font-bold text-soft-white mb-4 text-center">{title}</h4>
+          <div className="flex items-center justify-center text-slate-gray">No data</div>
+        </div>
+      );
+    }
+
+    // ensure maxValue is at least 1 to avoid division by zero
+    const rawValues = data.map((d) => Number(d.value) || 0);
+    const maxValue = Math.max(...rawValues, 1);
+    const width = 300;
+    const height = 150;
+    const paddingX = 10;
+    const paddingY = 30;
+    const usableWidth = width;
+    const usableHeight = height;
+
+    const pointCount = data.length;
+    const points = rawValues.map((val, idx) => {
+      // when there's only one point, place it near the middle
+      const x =
+        pointCount === 1 ? usableWidth / 2 : (idx / Math.max(1, pointCount - 1)) * usableWidth;
+      // clamp computed y to avoid NaN / Infinity
+      const ratio = isFinite(maxValue) && maxValue > 0 ? val / maxValue : 0;
+      const y = usableHeight - ratio * (usableHeight * 0.8); // leave top/bottom padding visually
+      return { x: Math.round(x), y: Math.round(y) };
+    });
+
+    // build path string only if we have valid points
+    const pathD =
+      points.length > 0
+        ? points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x + paddingX},${p.y + paddingY}`).join(" ")
+        : "";
+
+    // prepare small ticks/labels for bottom (safe mapping)
+    const labels = data.map((d, i) => ({
+      label: d.label || `${i + 1}`,
+      value: d.value || 0,
+    }));
+
     return (
       <div className="bg-jet-black rounded-xl p-6">
         <h4 className="text-lg font-bold text-soft-white mb-4 text-center">{title}</h4>
-        <div className="flex items-center justify-center text-slate-gray">No data</div>
+
+        <svg width={width + paddingX * 2} height={height + paddingY * 2} className="mx-auto block">
+          {/* gridlines */}
+          {[0, 1, 2, 3, 4].map((i) => (
+            <line
+              key={i}
+              x1={paddingX}
+              y1={paddingY + (i * (usableHeight / 4))}
+              x2={paddingX + usableWidth}
+              y2={paddingY + (i * (usableHeight / 4))}
+              stroke="#374151"
+              strokeWidth={0.5}
+              strokeOpacity={0.8}
+            />
+          ))}
+
+          {/* path */}
+          {pathD && (
+            <path
+              d={pathD}
+              stroke="url(#expenseGradient)"
+              strokeWidth={3}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+
+          {/* gradient definition */}
+          <defs>
+            <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#FF6B6B" />
+              <stop offset="50%" stopColor="#4ECDC4" />
+              <stop offset="100%" stopColor="#45B7D1" />
+            </linearGradient>
+          </defs>
+
+          {/* points */}
+          {points.map((p, idx) => {
+            // ensure numeric
+            const cx = Number(p.x) + paddingX;
+            const cy = Number(p.y) + paddingY;
+            if (!isFinite(cx) || !isFinite(cy)) return null;
+            return <circle key={idx} cx={cx} cy={cy} r={4} fill="#FF6B6B" />;
+          })}
+        </svg>
+
+        {/* bottom labels */}
+        <div className="flex justify-between mt-4 text-sm">
+          {labels.map((item, index) => (
+            <div key={index} className="text-center truncate" style={{ width: `${100 / labels.length}%` }}>
+              <p className="text-white">{item.label}</p>
+              <p className="text-soft-white font-bold">₹{(item.value / 1000).toFixed(1)}K</p>
+            </div>
+          ))}
+        </div>
       </div>
     );
-  }
-
-  // ensure maxValue is at least 1 to avoid division by zero
-  const rawValues = data.map((d) => Number(d.value) || 0);
-  const maxValue = Math.max(...rawValues, 1);
-  const width = 300;
-  const height = 150;
-  const paddingX = 10;
-  const paddingY = 30;
-  const usableWidth = width;
-  const usableHeight = height;
-
-  const pointCount = data.length;
-  const points = rawValues.map((val, idx) => {
-    // when there's only one point, place it near the middle
-    const x =
-      pointCount === 1 ? usableWidth / 2 : (idx / Math.max(1, pointCount - 1)) * usableWidth;
-    // clamp computed y to avoid NaN / Infinity
-    const ratio = isFinite(maxValue) && maxValue > 0 ? val / maxValue : 0;
-    const y = usableHeight - ratio * (usableHeight * 0.8); // leave top/bottom padding visually
-    return { x: Math.round(x), y: Math.round(y) };
-  });
-
-  // build path string only if we have valid points
-  const pathD =
-    points.length > 0
-      ? points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x + paddingX},${p.y + paddingY}`).join(" ")
-      : "";
-
-  // prepare small ticks/labels for bottom (safe mapping)
-  const labels = data.map((d, i) => ({
-    label: d.label || `${i + 1}`,
-    value: d.value || 0,
-  }));
-
-  return (
-    <div className="bg-jet-black rounded-xl p-6">
-      <h4 className="text-lg font-bold text-soft-white mb-4 text-center">{title}</h4>
-
-      <svg width={width + paddingX * 2} height={height + paddingY * 2} className="mx-auto block">
-        {/* gridlines */}
-        {[0, 1, 2, 3, 4].map((i) => (
-          <line
-            key={i}
-            x1={paddingX}
-            y1={paddingY + (i * (usableHeight / 4))}
-            x2={paddingX + usableWidth}
-            y2={paddingY + (i * (usableHeight / 4))}
-            stroke="#374151"
-            strokeWidth={0.5}
-            strokeOpacity={0.8}
-          />
-        ))}
-
-        {/* path */}
-        {pathD && (
-          <path
-            d={pathD}
-            stroke="url(#expenseGradient)"
-            strokeWidth={3}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-
-        {/* gradient definition */}
-        <defs>
-          <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#FF6B6B" />
-            <stop offset="50%" stopColor="#4ECDC4" />
-            <stop offset="100%" stopColor="#45B7D1" />
-          </linearGradient>
-        </defs>
-
-        {/* points */}
-        {points.map((p, idx) => {
-          // ensure numeric
-          const cx = Number(p.x) + paddingX;
-          const cy = Number(p.y) + paddingY;
-          if (!isFinite(cx) || !isFinite(cy)) return null;
-          return <circle key={idx} cx={cx} cy={cy} r={4} fill="#FF6B6B" />;
-        })}
-      </svg>
-
-      {/* bottom labels */}
-      <div className="flex justify-between mt-4 text-sm">
-        {labels.map((item, index) => (
-          <div key={index} className="text-center truncate" style={{ width: `${100 / labels.length}%` }}>
-            <p className="text-white">{item.label}</p>
-            <p className="text-soft-white font-bold">₹{(item.value / 1000).toFixed(1)}K</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+  };
 
 
   const PieChartComponent = ({ data, title }: { data: CategoryData[], title: string }) => {
@@ -318,23 +341,23 @@ const SmartExpenseTracker: React.FC = () => {
               const angle = (percentage / 100) * 360;
               const startAngle = currentAngle;
               const endAngle = currentAngle + angle;
-              
+
               const x1 = 100 + 80 * Math.cos((startAngle - 90) * Math.PI / 180);
               const y1 = 100 + 80 * Math.sin((startAngle - 90) * Math.PI / 180);
               const x2 = 100 + 80 * Math.cos((endAngle - 90) * Math.PI / 180);
               const y2 = 100 + 80 * Math.sin((endAngle - 90) * Math.PI / 180);
-              
+
               const largeArcFlag = angle > 180 ? 1 : 0;
-              
+
               const pathData = [
                 `M 100 100`,
                 `L ${x1} ${y1}`,
                 `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
                 'Z'
               ].join(' ');
-              
+
               currentAngle += angle;
-              
+
               return (
                 <path
                   key={index}
@@ -426,7 +449,7 @@ const SmartExpenseTracker: React.FC = () => {
         });
         const weekTotal = weekExpenses.reduce((sum, exp) => sum + exp.amount, 0);
         weeks.push({
-          label: `W${4-i}`,
+          label: `W${4 - i}`,
           value: weekTotal
         });
       }
@@ -456,7 +479,7 @@ const SmartExpenseTracker: React.FC = () => {
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-3xl"></div>
       </div>
-      
+
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-ubuntu font-bold text-soft-white mb-4">
@@ -474,7 +497,7 @@ const SmartExpenseTracker: React.FC = () => {
             <h4 className="font-bold mb-1">Total Spent</h4>
             <p className="text-2xl font-bold">₹{(totalAmount / 1000).toFixed(1)}K</p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
             <BarChart3 className="w-8 h-8 mb-3" />
             <h4 className="font-bold mb-1">Transactions</h4>
@@ -502,17 +525,16 @@ const SmartExpenseTracker: React.FC = () => {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                    viewMode === mode 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-jet-black text-slate-gray hover:text-soft-white'
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${viewMode === mode
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-jet-black text-slate-gray hover:text-soft-white'
+                    }`}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
               ))}
             </div>
-            
+
             <div className="flex gap-4 items-center">
               <input
                 type="date"
@@ -545,12 +567,12 @@ const SmartExpenseTracker: React.FC = () => {
             title={`📈 ${viewMode.charAt(0).toUpperCase() + viewMode.slice(1)} Spending Trend`}
             data={getTrendData()}
           />
-          
+
           <PieChartComponent
             data={categoryData}
             title="🥧 Category Distribution"
           />
-          
+
           <BarChartComponent
             data={categoryData}
             title="📊 Top Categories"
@@ -570,11 +592,11 @@ const SmartExpenseTracker: React.FC = () => {
               ) : (
                 getFilteredExpenses().slice(0, 10).map(expense => {
                   const category = expenseCategories.find(cat => cat.name === expense.category);
-                  const riskColor = !expense.riskScore ? 'text-green-400' : 
-                                   expense.riskScore <= 30 ? 'text-green-400' : 
-                                   expense.riskScore <= 70 ? 'text-yellow-400' : 
-                                   'text-red-500';
-                  
+                  const riskColor = !expense.riskScore ? 'text-green-400' :
+                    expense.riskScore <= 30 ? 'text-green-400' :
+                      expense.riskScore <= 70 ? 'text-yellow-400' :
+                        'text-red-500';
+
                   return (
                     <div key={expense.id} className="flex items-center justify-between p-4 bg-jet-black rounded-lg hover:bg-slate-gray/10 transition-colors">
                       <div className="flex items-center gap-3">
@@ -657,16 +679,15 @@ const SmartExpenseTracker: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-charcoal-gray rounded-2xl p-8 w-full max-w-2xl border border-slate-gray/20 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold text-soft-white mb-6 text-center">💰 Add New Expense</h2>
-              
+
               {/* Fraud Analysis Display */}
               {lastFraudAnalysis && (
-                <div className={`mb-8 rounded-xl p-6 border-2 ${
-                  lastFraudAnalysis.isFlagged 
-                    ? 'bg-red-500/10 border-red-500' 
-                    : lastFraudAnalysis.riskScore > 30
+                <div className={`mb-8 rounded-xl p-6 border-2 ${lastFraudAnalysis.isFlagged
+                  ? 'bg-red-500/10 border-red-500'
+                  : lastFraudAnalysis.riskScore > 30
                     ? 'bg-yellow-500/10 border-yellow-500'
                     : 'bg-green-500/10 border-green-500'
-                }`}>
+                  }`}>
                   <div className="flex items-center gap-3 mb-3">
                     {lastFraudAnalysis.isFlagged ? (
                       <>
@@ -685,33 +706,31 @@ const SmartExpenseTracker: React.FC = () => {
                       </>
                     )}
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="bg-black/40 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-soft-white font-semibold">Risk Score</span>
-                        <span className={`text-2xl font-bold ${
-                          lastFraudAnalysis.riskScore <= 30 ? 'text-green-400' :
+                        <span className={`text-2xl font-bold ${lastFraudAnalysis.riskScore <= 30 ? 'text-green-400' :
                           lastFraudAnalysis.riskScore <= 70 ? 'text-yellow-400' :
-                          'text-red-500'
-                        }`}>
+                            'text-red-500'
+                          }`}>
                           {lastFraudAnalysis.riskScore}/100
                         </span>
                       </div>
-                      
+
                       {/* Risk Bar */}
                       <div className="w-full bg-black/60 rounded-full h-3 overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-500 ${
-                            lastFraudAnalysis.riskScore <= 30 ? 'bg-green-500' :
+                          className={`h-full transition-all duration-500 ${lastFraudAnalysis.riskScore <= 30 ? 'bg-green-500' :
                             lastFraudAnalysis.riskScore <= 70 ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }`}
+                              'bg-red-500'
+                            }`}
                           style={{ width: `${lastFraudAnalysis.riskScore}%` }}
                         />
                       </div>
                     </div>
-                    
+
                     {/* Transaction Details */}
                     <div className="bg-black/40 rounded-lg p-4">
                       <p className="text-soft-white font-semibold mb-3">Transaction Details:</p>
@@ -721,39 +740,39 @@ const SmartExpenseTracker: React.FC = () => {
                         <p className="text-white">🕐 Time: <span className="font-bold">{new Date().toLocaleTimeString('en-IN', { hour12: true })}</span></p>
                       </div>
                     </div>
-                    
-              {/* Fraud Reasons */}
-              {lastFraudAnalysis.fraudReasons && lastFraudAnalysis.fraudReasons.length > 0 && (
-                <div className="bg-black/40 rounded-lg p-4">
-                  <p className="text-soft-white font-semibold mb-3">🚨 Risk Factors Detected:</p>
-                  <ul className="space-y-2 text-sm text-white">
-                      {lastFraudAnalysis.fraudReasons.map((reason: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                    
+
+                    {/* Fraud Reasons */}
+                    {lastFraudAnalysis.fraudReasons && lastFraudAnalysis.fraudReasons.length > 0 && (
+                      <div className="bg-black/40 rounded-lg p-4">
+                        <p className="text-soft-white font-semibold mb-3">🚨 Risk Factors Detected:</p>
+                        <ul className="space-y-2 text-sm text-white">
+                          {lastFraudAnalysis.fraudReasons.map((reason: string, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-red-400 mt-1">•</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
                     {/* Recommendations */}
                     <div className="bg-black/40 rounded-lg p-4">
                       <p className="text-soft-white font-semibold mb-3">💡 Recommendation:</p>
                       <p className="text-sm text-white">
-                        {lastFraudAnalysis.isFlagged 
+                        {lastFraudAnalysis.isFlagged
                           ? "This transaction has been flagged due to multiple risk factors. Please review it carefully. You should verify this expense is legitimate before confirming."
                           : lastFraudAnalysis.riskScore > 30
-                          ? "This transaction shows some unusual characteristics. Proceed with caution and verify the details are correct."
-                          : "This transaction appears normal. No fraud indicators detected."
+                            ? "This transaction shows some unusual characteristics. Proceed with caution and verify the details are correct."
+                            : "This transaction appears normal. No fraud indicators detected."
                         }
                       </p>
                     </div>
                   </div>
                 </div>
               )}
-              
-              
+
+
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
@@ -804,11 +823,10 @@ const SmartExpenseTracker: React.FC = () => {
                       <button
                         key={category.name}
                         onClick={() => setNewExpense(prev => ({ ...prev, category: category.name }))}
-                        className={`p-3 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
-                          newExpense.category === category.name
-                            ? 'border-emerald-500 bg-emerald-500/20'
-                            : 'border-slate-gray/30 hover:border-slate-gray/50 bg-jet-black'
-                        }`}
+                        className={`p-3 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-1 ${newExpense.category === category.name
+                          ? 'border-emerald-500 bg-emerald-500/20'
+                          : 'border-slate-gray/30 hover:border-slate-gray/50 bg-jet-black'
+                          }`}
                       >
                         <span className="text-lg">{category.icon}</span>
                         <span className="text-xs font-medium text-soft-white text-center">{category.name}</span>
