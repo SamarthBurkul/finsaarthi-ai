@@ -90,6 +90,7 @@ app.use('/api/expenses', require('./routes/expenses'));
 app.use('/api/budget', require('./routes/budget'));
 app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/transactions', require('./routes/transactions'));
+app.use('/api/news', require('./routes/news'));
 
 // ============================================
 // 3. ERROR HANDLING (must be after routes)

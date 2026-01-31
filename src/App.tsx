@@ -16,6 +16,7 @@ import SmartInvestmentComparator from "./components/SmartInvestmentComparator";
 import GovernmentBenefits from "./components/GovernmentBenefits";
 import WalletDashboard from "./components/WalletDashboard";
 import FraudAlertsDashboard from "./components/FraudAlertsDashboard";
+import FinanceNews from "./components/FinanceNews";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import { auth, googleProvider } from "./firebase";
@@ -153,6 +154,8 @@ function App() {
         return <WalletDashboard />;
       case "fraud-monitor":
         return <FraudAlertsDashboard />;
+      case "finance-news":
+        return <FinanceNews />;
       default:
         return <Hero setActiveSection={handleSetActiveSection} />;
     }

@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Wallet,
   AlertTriangle,
+  Newspaper,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -71,6 +72,7 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection, onLogo
   const learnGroup = [
     { id: "education", label: "Study", icon: BookMarked },
     { id: "government-benefits", label: "Gov Benefits", icon: FileText },
+    { id: "finance-news", label: "Finance News", icon: Newspaper },
   ];
 
   const handleNavClick = (section: string) => {
