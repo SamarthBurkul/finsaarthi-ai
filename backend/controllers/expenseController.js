@@ -1,29 +1,13 @@
 // backend/controllers/expenseController.js
 const Expense = require("../models/Expense");
 const Alert = require("../models/Alert");
-const { computeFraudRisk } = require("../utils/fraud");
 
 exports.createExpense = async (req, res) => {
   try {
     const userId = req.userId;
     const { amount, category, purpose, paymentMethod, date } = req.body;
 
-    // Fetch recent transactions for fraud check
-    const recentTransactions = await Expense.find({ userId })
-      .sort({ expenseDate: -1 })
-      .limit(10);
-
-    // Run fraud detection engine
-    const fraudAnalysis = computeFraudRisk(
-      {
-        amount,
-        category,
-        date: date ? new Date(date) : new Date(),
-      },
-      recentTransactions
-    );
-
-    // Create expense with fraud data
+    // Create expense without fraud detection
     const expense = await Expense.create({
       userId,
       amount,
@@ -31,28 +15,9 @@ exports.createExpense = async (req, res) => {
       purpose,
       paymentMethod: paymentMethod || "UPI",
       expenseDate: date ? new Date(date) : new Date(),
-      riskScore: fraudAnalysis.riskScore,
-      fraudReasons: fraudAnalysis.reasons,
-      isFlagged: fraudAnalysis.flagged,
     });
 
-    // If flagged, create alert entry
-    if (fraudAnalysis.flagged) {
-      await Alert.create({
-        userId,
-        transactionId: expense._id,
-        riskScore: fraudAnalysis.riskScore,
-        reasons: fraudAnalysis.reasons,
-        status: "new",
-      });
-    }
-
-    return res.status(201).json({
-      ...expense.toObject(),
-      riskScore: fraudAnalysis.riskScore,
-      fraudReasons: fraudAnalysis.reasons,
-      flagged: fraudAnalysis.flagged,
-    });
+    return res.status(201).json(expense.toObject());
   } catch (err) {
     console.error("createExpense:", err);
     return res.status(500).json({ message: "Server error creating expense" });
