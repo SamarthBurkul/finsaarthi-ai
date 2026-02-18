@@ -1,249 +1,310 @@
-FinSaarthi – AI Finance Companion for India 💰🇮🇳  
-==================================================
+# FinSaarthi – AI Finance Companion for India 💰🇮🇳
 
-FinSaarthi is an AI‑driven finance companion that helps Indian users plan daily money decisions, explore career growth, and compare investments through an interactive, visually rich web experience.  
-It blends AI assistance, calculators, and learning content so users can move from **“What is happening with my money?” to “What should I do next?”** in one place.
+FinSaarthi is an AI-driven finance companion that helps Indian users plan daily money decisions, explore career growth, and compare investments through an interactive, visually rich web experience.
 
-***
+It blends AI assistance, calculators, and learning content so users can move from **"What is happening with my money?" to "What should I do next?"** in one place.
 
-🌍 Vision – Open Innovation for Financial Freedom  
--------------------------------------------------
+---
+
+## 🌍 Vision
 
 FinSaarthi is built on the belief that **financial literacy should be intelligent, inclusive, and accessible**.
 
-- 🔓 **Open innovation** – Modern web stack, modular APIs, and AI models that can be extended and improved by the community.  
-- 🇮🇳 **India‑first** – Rupee‑based flows, Indian finance scenarios, and culturally relevant examples.  
-- 🤖 **AI‑first experience** – Not just calculators, but a friendly guide that explains the *why* behind every decision.
+- 🔓 **Open Innovation** – Modern web stack, modular APIs, and AI models.
+- 🇮🇳 **India-first** – Rupee-based flows, Indian finance scenarios, and culturally relevant examples.
+- 🤖 **AI-first Experience** – A friendly guide that explains the *why* behind every decision.
 
-> **FinSaarthi = “Saarthi” (guide) + AI – your smart co‑pilot for money.**
+> **FinSaarthi = "Saarthi" (guide) + AI – your smart co-pilot for money.**
 
-***
+---
 
+## 🚀 Live Deployment
 
-### 1. **My Government Benefits**
-- Find eligible government schemes
-- Personalized benefit recommendations
-- Scheme analysis and verification
-- Document guidance
-- Fraud protection alerts
-- PDF report generation
+| Layer | URL |
+|-------|-----|
+| **Frontend** | Deployed on Vercel (auto-deploys from `main` branch) |
+| **Backend** | Deployed on Vercel via `backend/vercel.json` |
 
-### 2. **Smart Savings**
-- Daily savings goal tracker
-- Digital piggy bank
-- Wealth projections (10 days to 1 year)
-- Life goal attachment
-- AI savings habit analysis
-- Streak tracking
+---
 
+## 🧱 Tech Stack
 
-### 3. **Financial Education**
-- Banking 101: Account types, cards, loans, safety tips
-- Investment basics
-- Tax planning
-- Retirement planning
-- Interactive learning modules
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, DaisyUI, Framer Motion |
+| **Backend** | Node.js, Express.js, MongoDB (Mongoose), JWT Authentication |
+| **AI** | Groq (Llama 3.1), Perplexity API |
+| **Auth** | Firebase (Google Sign-In) + JWT (MongoDB sessions) |
+| **Other** | Alpha Vantage (stock data), jsPDF (report generation) |
 
-### 4. **Advanced Calculator Hub**
-- EMI Calculator
-- SIP Calculator
-- Retirement Calculator
-- Tax Calculator
-- Loan Comparison
-- FD Calculator
-- Business Calculator
+---
 
-### 5. **FinSaarthi AI Assistant**
-- 24/7 AI chatbot for financial queries
-- Conversational financial advice
-- Quick question suggestions
-- Real-time responses using Groq API
-🎯 Why FinSaarthi?  
-------------------
+## 🌟 Features
 
-Most people juggle multiple apps and spreadsheets: one for expenses, one for EMIs, one for learning, and none for unbiased, contextual advice.
+### ✅ Implemented
 
-**Pain points we target:**
+#### 💳 Mock Wallet & Transaction Simulator
+- User wallet with balance tracking (INR)
+- Credit/debit transactions with full CRUD
+- Atomic balance updates using MongoDB `$inc` operators
+- Insufficient funds protection
+- Transaction reversal (soft delete with balance rollback)
+- Transaction summary and statistics aggregation
+- Wallet status management (active / frozen / closed)
 
-- Fragmented tools and no single view of money.  
-- Confusing loan / EMI / investment decisions.  
-- Lack of personalized guidance for Indian users.  
+#### 🛡️ Fraud Detection & Risk Scoring Engine
+- Rule-based scoring (0–100) with 7 detection rules:
+  - **Large Amount** – dynamic threshold (50% balance, 3x avg spending, ₹50K absolute)
+  - **High-Risk Category** – gambling, crypto, adult, etc.
+  - **Suspicious Merchant** – keyword matching + trusted list check
+  - **Frequent Transactions** – count + sum check in 10-min window
+  - **Location Mismatch** – home country vs transaction country
+  - **Round Number Pattern** – suspiciously round amounts
+  - **Negative Balance Risk** – overdraw detection
+- Human-readable risk reasons with weighted breakdown
+- Configurable thresholds via `FRAUD_CONFIG`
+- Auto-creates alerts for flagged transactions (score ≥ 50)
 
-**FinSaarthi responds with:**
+#### 🔐 JWT Authentication & Audit Trail
+- JWT-based auth with Bearer token verification
+- Firebase Google Sign-In with MongoDB backend sync
+- SHA-256 transaction hash (`txHash`) for tamper-evident audit
+- Transaction verification endpoint (`GET /api/transactions/:id/verify`)
+- Immutable `txHash` field on schema
+- Audit log generation for create/update/reverse actions
+- Dev mode bypass with `x-user-id` header
 
-- A single **AI‑enhanced finance surface** for chat, tools, and learning.  
-- Clean, visual interfaces that make finance feel less scary and more intuitive.  
-- Future‑ready modules that can be extended as an open‑innovation platform.
+#### 🚨 Smart Alerts System
+- Alert model with types: fraud, overdraft, unusual_activity, security
+- Severity levels: low, medium, high, critical
+- Full alerts API: list, stats, mark read, resolve, delete
+- Frontend `FraudAlertsDashboard` with risk badges
+- `SmartAlertPanel` component integrated in wallet dashboard
 
-***
+#### 📋 Policy Engine
+- Refund eligibility analysis per category
+- Legal compliance notices (RBI thresholds)
+- Context-aware disclaimers
+- Consultation recommendations (CA, lawyer, cyber cell)
+- Attached to every transaction response
 
-🌟 Main Screens & Features  
---------------------------
+#### 🤖 AI-Powered Features
+- **AI Finance Bot** – 24/7 chatbot for financial queries (Groq API)
+- **Smart Budget AI** – spending pattern analysis
+- **Career Income Intelligence** – salary estimation and career growth projections
+- **Stock Mentor AI** – educational stock analysis
+- **Smart Expense Tracker** – AI-powered expense categorization
+- **Financial Education** – AI-generated lesson content and quizzes
 
-### 🏠 Home – Smart Finance, Smarter You
+#### 📊 Calculators & Tools
+- EMI, SIP, FD, Tax, Retirement, Loan Comparison calculators
+- Smart Business Calculator with AI analysis
+- Bank Locator
 
-- Hero section with bold tagline: **“Smart Finance, Smarter Future”**.  
-- Primary CTAs: **Get Started** and **Explore Tools** for quick onboarding.  
-- Highlight counters (AI tools, calculators, users, accuracy) to position FinSaarthi as a complete platform.  
-- “About FinSaarthi” block describing the mission in simple, human language.
+#### 🏛️ Other Features
+- Government Benefits finder with PDF reports
+- Smart Savings tracker with streak tracking
+- Investment Comparator (Gold, FD, Mutual Funds)
+- Finance News (personalized by user persona)
+- Financial Education hub with interactive lessons
+- Leaderboard system
 
-***
+### 🔜 Planned (Not Yet Implemented)
 
-### 💬 AI Chat – Ask Anything About Money
+- **AI Recommendation Hook** – Server-side proxy route (`POST /api/ai/advice`) for contextual fraud advice
+- **Real-time Notifications** – Socket.IO for live transaction/alert push events
+- Multilingual support (Hindi, Marathi, Tamil)
+- Goal-based planning flows
 
-- Chat‑style experience where users type natural questions about:  
-  - Budgeting, savings, EMIs, investing basics, and everyday money doubts.  
-- AI replies with **clear explanations, not just numbers**, helping users understand trade‑offs and next steps.  
-- Designed as a neutral, educational finance buddy (not a product‑pushing bot).
+---
 
-***
-
-### 🧰 Tools Menu
-
-#### 📊 Calculators
-
-- Central place for your financial calculators (EMI, SIP, savings, etc., as currently implemented).  
-- Dark theme, card‑based layout with:  
-  - Simple inputs  
-  - Instant results  
-  - Contextual helper text for new users  
-
-#### 💡 Smart Savings
-
-- Screen focused on saving‑oriented thinking and insights.  
-- Encourages users to move from random spending to **intentional saving**.  
-- Pairs well with the calculator outputs and AI guidance.
+## 📁 Project Structure
 
 ```
-FIN-MENTOR-AI/
-├── src/
+finsaarthi-ai/
+├── src/                          # Frontend (React + TypeScript)
+│   ├── App.tsx                   # Main app with routing & auth
+│   ├── main.tsx                  # Entry point
+│   ├── firebase.ts               # Firebase config
+│   ├── index.css                 # Global styles
 │   ├── components/
-│   │   ├── Header.tsx                    # Navigation bar
-│   │   ├── Hero.tsx                      # Landing page
-│   │   ├── SmartBudgetAI.tsx            # Budget analysis
-│   │   ├── SmartExpenseTracker.tsx      # Expense tracking
-│   │   ├── SmartBusinessCalculator.tsx  # Business calculator
-│   │   ├── GovernmentBenefits.tsx       # Government schemes
-│   │   ├── SmartSavings.tsx             # Savings tracker
-│   │   ├── FinancialEducation.tsx       # Learning modules
-│   │   ├── AdvancedCalculatorHub.tsx    # Calculator tools
-│   │   └── AIFinanceBot.tsx             # AI chatbot
-│   ├── data/
-│   │   ├── expenseData.ts               # Expense dummy data
-│   │   └── businessData.ts              # Business dummy data
+│   │   ├── Header.tsx            # Navigation bar
+│   │   ├── Hero.tsx              # Landing page
+│   │   ├── SignIn.tsx            # Sign-in page
+│   │   ├── SignUp.tsx            # Sign-up page
+│   │   ├── WalletDashboard.tsx   # Wallet + transactions UI
+│   │   ├── FraudAlertsDashboard.tsx  # Fraud alerts & risk monitoring
+│   │   ├── SmartAlertPanel.tsx   # Per-transaction fraud/policy panel
+│   │   ├── AIFinanceBot.tsx      # AI chatbot
+│   │   ├── SmartBudgetAI.tsx     # Budget analysis
+│   │   ├── SmartExpenseTracker.tsx   # Expense tracking
+│   │   ├── SmartSavings.tsx      # Savings tracker
+│   │   ├── SmartInvestmentComparator.tsx  # Investment comparison
+│   │   ├── StockMentorAI.tsx     # Stock education AI
+│   │   ├── CareerIncomeIntelligence.tsx  # Career/salary AI
+│   │   ├── AdvancedCalculatorHub.tsx     # Calculator tools
+│   │   ├── SmartBusinessCalculator.tsx   # Business calculator
+│   │   ├── FinancialEducation.tsx    # Learning modules
+│   │   ├── BankingBasics.tsx     # Banking education
+│   │   ├── BankLocator.tsx       # Bank finder
+│   │   ├── GovernmentBenefits.tsx    # Govt schemes
+│   │   ├── FinanceNews.tsx       # Financial news
+│   │   ├── Leaderboard.tsx       # Gamification
+│   │   └── ...
+│   ├── api/                      # Frontend API services
+│   │   ├── walletService.ts      # Wallet API calls
+│   │   ├── transactionService.ts # Transaction API calls
+│   │   ├── savingsService.ts     # Savings API calls
+│   │   ├── budgetService.ts      # Budget API calls
+│   │   ├── expenseService.ts     # Expense API calls
+│   │   ├── investmentService.ts  # Investment API calls
+│   │   └── careerService.ts      # Career API calls
 │   ├── utils/
-│   │   ├── groqApi.ts                   # Groq API integration
-│   │   └── educationGroq.ts             # Education AI
-│   ├── App.tsx                          # Main app component
-│   └── main.tsx                         # Entry point
-├── .env                                 # Environment variables
-├── .gitignore                           # Git ignore rules
-├── package.json                         # Dependencies
-├── tailwind.config.js                   # Tailwind configuration
-├── tsconfig.json                        # TypeScript config
-└── README.md                            # This file
+│   │   ├── groqApi.ts            # Groq LLM integration
+│   │   ├── educationGroq.ts      # Education AI functions
+│   │   ├── authFetch.ts          # Authenticated HTTP client
+│   │   ├── calculations.ts       # Financial calculations
+│   │   └── chartData.ts          # Chart data utilities
+│   ├── types/                    # TypeScript type definitions
+│   │   ├── auth.ts
+│   │   ├── wallet.ts
+│   │   ├── transaction.ts
+│   │   └── index.ts
+│   └── data/                     # Static data
+│       ├── educationData.ts
+│       ├── expenseData.ts
+│       ├── bankData.ts
+│       └── quizData.ts
+│
+├── backend/                      # Backend (Node.js + Express)
+│   ├── index.js                  # Server entry point + CORS + routes
+│   ├── vercel.json               # Vercel deployment config
+│   ├── config/
+│   │   ├── db.js                 # MongoDB connection
+│   │   └── policies.js           # Policy rules & thresholds
+│   ├── middleware/
+│   │   ├── auth.js               # JWT authentication middleware
+│   │   └── errorHandler.js       # Error handling middleware
+│   ├── models/
+│   │   ├── user.js               # User model
+│   │   ├── Wallet.js             # Wallet model
+│   │   ├── Transaction.js        # Transaction model (with audit)
+│   │   ├── Alert.js              # Fraud alert model
+│   │   ├── Budget.js             # Budget model
+│   │   ├── Expense.js            # Expense model
+│   │   ├── saving.js             # Savings model
+│   │   ├── Carrer.js             # Career model
+│   │   ├── InvestmentComparison.js  # Investment model
+│   │   └── stock.js              # Stock model
+│   ├── controllers/
+│   │   ├── walletController.js   # Wallet CRUD + stats
+│   │   ├── transactionController.js  # Transaction CRUD + fraud + verify
+│   │   ├── budgetController.js
+│   │   ├── expenseController.js
+│   │   ├── savingsController.js
+│   │   ├── investmentController.js
+│   │   └── careerController.js
+│   ├── routes/
+│   │   ├── auth.js               # Auth routes (signup/signin)
+│   │   ├── wallet.js             # Wallet routes (JWT protected)
+│   │   ├── transactions.js       # Transaction + alert routes (JWT protected)
+│   │   ├── budget.js
+│   │   ├── expenses.js
+│   │   ├── savings.js
+│   │   ├── investment.js
+│   │   ├── career.js
+│   │   └── news.js
+│   ├── helpers/
+│   │   └── generateTxHash.js     # SHA-256 tx hash + verification
+│   ├── utils/
+│   │   ├── fraud.js              # Fraud detection engine (7 rules)
+│   │   └── policyEngine.js       # Policy analysis engine
+│   └── scripts/                  # Utility scripts
+│
+├── .env                          # Frontend env (gitignored)
+├── .gitignore
+├── package.json                  # Frontend dependencies
+├── vite.config.ts                # Vite configuration
+├── tailwind.config.js            # Tailwind CSS config
+├── tsconfig.json                 # TypeScript config
+├── tsconfig.app.json
+├── eslint.config.js
+├── postcss.config.js
+└── index.html                    # HTML entry point
 ```
-#### 💹 InvestCompare – Smart Investment Comparator
 
-- Dedicated page to configure and compare investment options like:  
-  - Gold  
-  - Fixed Deposits  
-  - Mutual Funds  
-- Users pick amount, time period, risk level, and preferences (e.g., liquidity, frequency).  
-- Interface walks through steps and shows structured comparison, with an **educational warning banner**:  
-  > “Educational prediction – Not a financial guarantee.”
+---
 
-#### 🏦 Find Banks (if enabled)
+## 🔌 API Reference
 
-- Helper area for discovering / thinking about banks and financial institutions.  
-- Future‑ready section for integrating curated banking information or discovery tools.
+All protected routes require `Authorization: Bearer <JWT>` header.
 
-***
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Register new user |
+| POST | `/api/auth/signin` | Login and get JWT token |
 
-### 🤖 AI Tools Menu
+### Wallet
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/wallet` | Get user's wallet |
+| POST | `/api/wallet` | Create wallet (upsert) |
+| PATCH | `/api/wallet` | Update wallet settings |
+| DELETE | `/api/wallet` | Delete wallet (if empty) |
+| GET | `/api/wallet/stats` | Wallet statistics |
 
-#### 📈 StockMentor AI (if present)
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/transactions` | Create transaction (with fraud scoring) |
+| GET | `/api/transactions` | List transactions (with filters & pagination) |
+| GET | `/api/transactions/summary` | Aggregated summary |
+| GET | `/api/transactions/:id` | Get single transaction |
+| PATCH | `/api/transactions/:id` | Update transaction metadata |
+| DELETE | `/api/transactions/:id` | Reverse transaction |
+| GET | `/api/transactions/:id/verify` | Verify transaction integrity |
 
-- AI helper focused on stock‑related explanations and “what‑if” scenarios.  
-- Strictly educational: helps users understand concepts, not give tips.
+### Alerts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/transactions/alerts` | List fraud alerts |
+| GET | `/api/transactions/alerts/stats` | Alert statistics |
+| PATCH | `/api/transactions/alerts/read-all` | Mark all as read |
+| PATCH | `/api/transactions/alerts/:id/read` | Mark alert as read |
+| PATCH | `/api/transactions/alerts/:id/resolve` | Resolve alert |
+| DELETE | `/api/transactions/alerts/:id` | Delete alert |
 
-#### 🧠 SmartBudget AI
+### Other APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| * | `/api/savings` | Savings CRUD |
+| * | `/api/budget` | Budget CRUD |
+| * | `/api/expenses` | Expense CRUD |
+| * | `/api/investment` | Investment CRUD |
+| * | `/api/career` | Career data |
+| * | `/api/news` | Financial news |
 
-- AI layer on top of budgeting to highlight spending patterns, categories, and possible optimizations.  
-- Bridges the gap between raw numbers and actionable advice.
+---
 
-#### 💼 Career Income AI – Career Income Intelligence
+## ⚙️ Getting Started
 
-- Form where users enter:  
-  - Current job role  
-  - Years of experience  
-  - Work location  
-  - Key skills  
-  - Industry and education level  
-- Outputs focus on:  
-  - Estimated salary range for current profile  
-  - 1, 3, 5‑year growth possibilities  
-  - Skill gap analysis and upskilling hints  
-  - High‑level financial planning tips linked to income growth  
+### Prerequisites
 
-This module connects **career planning + income + finance** in one flow.
+- Node.js 18+
+- npm
+- MongoDB instance (local or Atlas)
+- Groq API key
 
-***
-
-### 📚 Learn Menu – Financial Learning Hub
-
-- A colorful, card‑based **Financial Learning Hub** with lessons such as:  
-  - Lesson 1 – Introduction to Money & Banking  
-  - Lesson 2 – Types of Bank Accounts  
-  - Lesson 3 – ATM, Debit Card & UPI Basics  
-  - Lesson 4 – What Is Saving & Why It Is Important  
-  - Lesson 5 – Budgeting – Managing Income & Expenses  
-  - Lesson 6 – Introduction to Loans & EMI  
-  - Lesson 7+ – Insurance, investments, and more  
-- Progress strip at the top showing level and total points (for future gamification).  
-- Tabs like **Lessons**, **Banking 101**, and **Leaderboard** to structure the learning journey.
-
-FinSaarthi is not just a tool – it doubles as a **financial literacy classroom**.
-
-***
-
-🧱 Tech Snapshot  
-----------------
-
-- ⚛️ **Frontend:** React, TypeScript, Vite  
-- 🎨 **Styling:** Tailwind CSS, custom gradients, dark theme  
-- 📊 **Charts / UI visuals:** React components designed for dashboards and forms  
-- 🖥️ **Backend:** Node.js, Express.js, MongoDB (for auth and finance‑related data)  
-- 🤖 **AI Layer:** LLM integration (e.g., Groq) powering:  
-  - AI Chat  
-  - SmartBudget AI  
-  - Career Income AI  
-  - Other AI tools as they evolve  
-
-Design language: **neon gradients on deep navy / black**, soft glows, and rounded cards to feel like a futuristic finance cockpit.
-
-***
-
-⚙️ Getting Started  
-------------------
-
-### ✅ Prerequisites
-
-- Node.js 18+  
-- npm or yarn  
-- MongoDB instance (local or Atlas)  
-- AI API key (Groq or compatible provider)
-
-### 1️⃣ Clone the Repo
+### 1. Clone the Repo
 
 ```bash
-git clone <repository-url>
-cd FIN-MENTOR-AI
 git clone https://github.com/SamarthBurkul/finsaarthi-ai.git
 cd finsaarthi-ai
 ```
 
-### 2️⃣ Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 # Frontend
@@ -255,92 +316,92 @@ npm install
 cd ..
 ```
 
-### 3️⃣ Environment Variables
+### 3. Environment Variables
 
-Create `.env` in the project root (frontend):
+Create `.env` in project root (frontend):
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000
-VITE_GROQ_API_KEY=your_llm_key_here
+VITE_GROQ_API_KEY=your_groq_api_key
+VITE_PERPLEXITY_API_KEY=your_perplexity_key
+VITE_ALPHA_VANTAGE_KEY=your_alpha_vantage_key
+VITE_API_URL=http://localhost:5000/api
+VITE_BACKEND_URL=https://your-vercel-backend-url
+VITE_FIREBASE_API_KEY=your_firebase_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 Create `backend/.env`:
 
 ```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_strong_secret_here
 PORT=5000
-PERPLEXITY_API_KEY=your_optional_perplexity_key
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_strong_secret_here
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECRET=your_refresh_secret
+REFRESH_TOKEN_EXPIRY=10d
+NODE_ENV=development
+TX_HASH_SALT=your_secure_random_string
+PERPLEXITY_API_KEY=your_perplexity_key
 ```
 
-Make sure `.env` is in `.gitignore` so secrets are never committed.
+> ⚠️ `.env` files are gitignored. Never commit secrets.
 
-### 4️⃣ Run Locally
+### 4. Run Locally
 
 ```bash
+# Both frontend + backend together
+npm run start-all
+
+# Or separately:
 # Backend
-cd backend
-npm run dev
+cd backend && npm run dev
 
 # Frontend (new terminal)
-cd ..
 npm run dev
 ```
 
-Open the app at: **http://localhost:5173** 🚀
+Open: **http://localhost:5173** 🚀
 
-### 5️⃣ Build for Production
+### 5. Build for Production
 
 ```bash
 npm run build
 ```
 
-Deploy the frontend (e.g., Vercel) and backend (e.g., Render / Railway / VPS) with the same environment variables.
+---
 
-***
+## 🔐 Security
 
-🔐 Security & Privacy  
----------------------
+- 🔑 JWT authentication on all protected routes
+- 🛡️ SHA-256 transaction hashes for tamper-evident audit trail
+- 🔒 Immutable `txHash` field prevents post-creation modification
+- 🧱 Atomic MongoDB operations prevent race conditions
+- ✅ Balance rollback on failed transaction creation
+- 🚫 CORS configured for allowed origins only
+- 📋 Request validation on all endpoints
 
-- 🔑 JWT‑based authentication for user‑specific features.  
-- 🛡️ No direct bank logins or sensitive account integrations.  
-- 🔒 Secrets stored only in environment variables, not in the repository.  
-- 🧱 Backend includes basic validation and error handling to keep APIs robust.
+---
 
-***
+## 🤝 Team & Contributions
 
-🧭 Roadmap – Open Innovation Ahead  
-----------------------------------
-
-- 🌐 Multilingual support (Hindi, Marathi, Tamil, etc.).  
-- 🎯 Rich goal‑based planning flows (“education abroad”, “emergency fund”, “first home”).  
-- 🏆 Fully gamified learning with quizzes, streaks, and detailed leaderboard.  
-- 👥 Community‑driven budgeting templates and finance playbooks.  
-- 🏛️ Deeper integration with verified Indian government scheme data.
-
-***
-
-🤝 Team & Contributions  
------------------------
-
-FinSaarthi is built by a student team as part of an open‑innovation initiative in fintech.  
-Suggestions, bug reports, and thoughtful contributions are welcome.
+FinSaarthi is built by a student team as part of an open-innovation initiative in fintech.
 
 **How to contribute:**
 
-1. Fork this repository.  
-2. Create a feature branch (`feature/your-idea`).  
-3. Commit and push your changes.  
-4. Open a pull request explaining what you improved.
+1. Fork this repository
+2. Create a feature branch (`feature/your-idea`)
+3. Commit and push your changes
+4. Open a pull request explaining what you improved
 
-***
+---
 
-📄 License  
----------
+## 📄 License
 
-FinSaarthi is currently intended for **hackathon, demo, and educational use**.  
-For commercial usage or large‑scale deployments, please contact the maintainers.
+FinSaarthi is currently intended for **hackathon, demo, and educational use**.
+For commercial usage, please contact the maintainers.
 
-***
+---
 
-**FinSaarthi – your AI co‑pilot for clearer, smarter, and more confident financial decisions. 🚀💸**
+**FinSaarthi – your AI co-pilot for clearer, smarter, and more confident financial decisions. 🚀💸**
